@@ -1,0 +1,38 @@
+{
+  "name": "croncat-js-indexer",
+  "version": "0.0.1",
+  "description": "NodeJS script to get capture blocks and transactions related to CronCat",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node build/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "blockchain",
+    "croncat",
+    "indexer",
+    "cosmjs",
+    "cosmwasm"
+  ],
+  "author": "Mike Purvis",
+  "license": "MIT",
+  "dependencies": {
+    "@cosmjs/cosmwasm-stargate": "^0.29.1",
+    "@cosmjs/crypto": "^0.29.1",
+    "@cosmjs/encoding": "^0.29.1",
+    "@cosmjs/proto-signing": "^0.29.1",
+    "@cosmjs/tendermint-rpc": "0.29.0-rc.1",
+    "@logtail/node": "^0.1.12",
+    "chain-registry": "^1.0.0",
+    "cosmjs-types": "^0.5.1",
+    "dotenv": "^16.0.3",
+    "knex": "^2.3.0",
+    "pg": "^8.8.0",
+    "shelljs": "^0.8.5"
+  },
+  "devDependencies": {
+    "@types/node": "^18.11.7",
+    "typescript": "^4.8.4"
+  }
+}
