@@ -38,7 +38,7 @@ export const saveAgentDetails = async () => {
         agentsJson.pending.map(async pendingAgent => {
             const pendingId = await db('agents')
                 .insert({
-                    fk_block_id: contractBlockIdFk,
+                    fk_cb_id: contractBlockIdFk,
                     address: pendingAgent,
                     is_active: false,
                 }, 'id')
