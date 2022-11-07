@@ -64,7 +64,6 @@ CREATE TABLE transactions
     id          bigint                NOT NULL,
     fk_block_id bigint                NOT NULL,
     hash        character varying(64) NOT NULL,
-    has_error   boolean DEFAULT false NOT NULL,
     is_complete boolean DEFAULT false NOT NULL,
     code        int,
     gas_wanted  bigint,
