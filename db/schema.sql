@@ -64,7 +64,6 @@ CREATE TABLE transactions
     id          bigint                NOT NULL,
     fk_block_id bigint                NOT NULL,
     hash        character varying(64) NOT NULL,
-    has_error   boolean DEFAULT false NOT NULL,
     is_complete boolean DEFAULT false NOT NULL,
     code        int,
     gas_wanted  bigint,
@@ -289,10 +288,10 @@ ALTER TABLE ONLY task_rules ADD CONSTRAINT task_rules_id_key UNIQUE (id);
 
 CREATE TABLE task_actions
 (
-    id           bigint                NOT NULL,
-    fk_task_id   bigint                NOT NULL,
-    rule_variant character varying(32) NOT NULL,
-    json_data    text
+    id         bigint NOT NULL,
+    fk_task_id bigint NOT NULL,
+    msg        text   NOT NULL,
+    gas_limit  bigint
 );
 CREATE SEQUENCE task_actions_id_seq
     AS integer
