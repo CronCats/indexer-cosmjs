@@ -5,7 +5,6 @@ import {sha256} from "@cosmjs/crypto";
 import {decodeTxRaw} from "@cosmjs/proto-signing";
 import {isMsgExecuteEncodeObject} from "@cosmjs/cosmwasm-stargate";
 import {MsgExecuteContract} from "cosmjs-types/cosmwasm/wasm/v1/tx";
-import util from "util";
 import {
     blockHeights,
     blockMap, CACHE_LIMIT,
