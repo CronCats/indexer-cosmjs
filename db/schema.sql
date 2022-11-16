@@ -6,7 +6,7 @@ DROP TABLE IF EXISTS task_deposits CASCADE;
 DROP TABLE IF EXISTS task_amount_per CASCADE;
 DROP TABLE IF EXISTS task_rules CASCADE;
 DROP TABLE IF EXISTS task_actions CASCADE;
-DROP TABLE IF EXISTS task_native_funds_withdrawn CASCADE;
+DROP TABLE IF EXISTS task_funds_withdrawn CASCADE;
 DROP TABLE IF EXISTS tasks CASCADE;
 DROP TABLE IF EXISTS config_balances CASCADE;
 DROP TABLE IF EXISTS config CASCADE;
@@ -306,23 +306,25 @@ ALTER TABLE ONLY task_actions ADD CONSTRAINT task_actions_id_key UNIQUE (id);
 
 --- Task's native funds withdrawn
 
-CREATE TABLE task_native_funds_withdrawn
+CREATE TABLE task_funds_withdrawn
 (
-    id           bigint                NOT NULL,
-    fk_task_id   bigint                NOT NULL,
-    rule_variant character varying(32) NOT NULL,
-    json_data    text
+    id         bigint                NOT NULL,
+    fk_task_id bigint                NOT NULL,
+    type       character varying(32) NOT NULL,
+    denom      character varying(32),
+    address    character varying(128),
+    amount     bigint                NOT NULL
 );
-CREATE SEQUENCE task_native_funds_withdrawn_id_seq
+CREATE SEQUENCE task_funds_withdrawn_id_seq
     AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
     NO MAXVALUE CACHE 1;
-ALTER SEQUENCE task_native_funds_withdrawn_id_seq OWNED BY task_native_funds_withdrawn.id;
-ALTER TABLE ONLY task_native_funds_withdrawn ALTER COLUMN id SET DEFAULT nextval('task_native_funds_withdrawn_id_seq'::regclass);
-ALTER TABLE ONLY task_native_funds_withdrawn ADD CONSTRAINT fk_task FOREIGN KEY (fk_task_id) REFERENCES tasks(id);
-ALTER TABLE ONLY task_native_funds_withdrawn ADD CONSTRAINT task_native_funds_withdrawn_id_key UNIQUE (id);
+ALTER SEQUENCE task_funds_withdrawn_id_seq OWNED BY task_funds_withdrawn.id;
+ALTER TABLE ONLY task_funds_withdrawn ALTER COLUMN id SET DEFAULT nextval('task_funds_withdrawn_id_seq'::regclass);
+ALTER TABLE ONLY task_funds_withdrawn ADD CONSTRAINT fk_task FOREIGN KEY (fk_task_id) REFERENCES tasks(id);
+ALTER TABLE ONLY task_funds_withdrawn ADD CONSTRAINT task_funds_withdrawn_id_key UNIQUE (id);
 
 --- Config per contract
 
