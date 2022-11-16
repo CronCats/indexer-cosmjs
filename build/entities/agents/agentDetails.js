@@ -16,7 +16,7 @@ const saveAgentInfo = async (agentAddress, rowId, blockInfo) => {
     };
     const managerAddress = variables_1.settings.contracts.manager.address;
     const agentInfo = await (0, utils_1.queryContractAtHeight)(managerAddress, queryGetAgentReadableMsg, blockHeight);
-    (0, utils_1.v)('agent info', agentInfo);
+    // v('agent info', agentInfo)
     let promises = [];
     promises.push((0, variables_1.db)('agents').update({
         payable_account_id: agentInfo.payable_account_id,
