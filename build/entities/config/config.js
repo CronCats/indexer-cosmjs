@@ -10,7 +10,7 @@ const saveConfigDetails = async () => {
         .rightJoin('contract_block_piv', 'contract_block_piv.id', 'config.fk_cb_id')
         .innerJoin('blocks', 'contract_block_piv.fk_block_id', 'blocks.id')
         .whereNull('config.id');
-    // v('neededBlocks (config)', neededBlocks)
+    (0, utils_1.v)('neededBlocks (config)', neededBlocks);
     let promises = [];
     const getConfigMsg = {
         // get_config function takes no parameters, hence {} being an empty object where you'd normally put params
@@ -27,7 +27,7 @@ const saveConfigDetails = async () => {
 exports.saveConfigDetails = saveConfigDetails;
 const saveConfig = async (contractAddress, getConfigMsg, blockHeight, contractBlockIdFk) => {
     const config = await (0, utils_1.queryContractAtHeight)(contractAddress, getConfigMsg, blockHeight);
-    // v('config', config)
+    (0, utils_1.v)('config', config);
     // Insert row into config
     const configFkId = await (0, variables_1.db)('config').insert({
         fk_cb_id: contractBlockIdFk,

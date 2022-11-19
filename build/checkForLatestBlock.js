@@ -26,7 +26,7 @@ const checkForLatestBlock = async () => {
     let block;
     try {
         block = await (0, utils_1.getBlockInfo)(currentHeight);
-        // v('block', block)
+        (0, utils_1.v)('block', block);
         const blockTime = block.block.header.time;
         const isoBlockTime = new Date(blockTime.toISOString()).toISOString();
         const blockTxs = block.block.txs;
@@ -57,24 +57,24 @@ const handleBlockTxs = async (height, blockTxs, isoBlockTime) => {
             msgs: []
         };
         const decodedTx = (0, proto_signing_1.decodeTxRaw)(tx);
-        // v('decodedTx', decodedTx)
+        (0, utils_1.v)('decodedTx', decodedTx);
         simpleTx.memo = decodedTx.body.memo;
         let wasmExecMsgs = [];
         decodedTx.body.messages.forEach(m => {
             if ((0, cosmwasm_stargate_1.isMsgExecuteEncodeObject)(m)) {
                 let msg = tx_1.MsgExecuteContract.decode(m.value);
-                // v('msg', msg)
+                (0, utils_1.v)('msg', msg);
                 // Check if this is among the contracts we care about
                 if (!variables_1.contractAddresses.includes(msg.contract)) {
                     // console.log(`Called a contract ${msg.contract} but it's not one of ours`)
                 }
                 else {
                     const innerMsg = JSON.parse(Buffer.from(msg.msg).toString());
-                    // v('innerMsg', innerMsg)
+                    (0, utils_1.v)('innerMsg', innerMsg);
                     msg.msg = innerMsg;
                     wasmExecMsgs.push(msg);
                 }
-                // v('msg', msg)
+                (0, utils_1.v)('msg', msg);
             }
         });
         if (wasmExecMsgs.length !== 0) {

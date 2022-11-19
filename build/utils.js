@@ -66,7 +66,9 @@ exports.base64FromBytes = base64FromBytes;
 // This offers a more verbose way to display an object
 // avoiding showing stuff like [Object object]
 const v = (message, data) => {
-    console.log(message, util.inspect(data, false, null, true));
+    if (variables_1.VERBOSITY === true) {
+        console.log(message, util.inspect(data, false, null, true));
+    }
 };
 exports.v = v;
 // Not tremendously important to get right yet
@@ -112,7 +114,7 @@ const checkForMissedBlocks = async () => {
             const blockTxs = block.block.txs;
             const blockTime = block.block.header.time;
             const isoBlockTime = new Date(blockTime.toISOString()).toISOString();
-            // v('isoBlockTime', isoBlockTime)
+            (0, exports.v)('isoBlockTime', isoBlockTime);
             console.log('Fixing missed block', missingBlockNum);
             await (0, checkForLatestBlock_1.handleBlockTxs)(missingBlockNum, blockTxs, isoBlockTime);
         }

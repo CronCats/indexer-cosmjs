@@ -5,7 +5,7 @@ const variables_1 = require("./variables");
 const utils_1 = require("./utils");
 const addTxDetail = async () => {
     const rowsNeedingUpdate = await (0, variables_1.db)('transactions').select('hash', 'id').where('is_complete', false).limit(6);
-    // v('Transaction rows needing updating', rowsNeedingUpdate)
+    (0, utils_1.v)('Transaction rows needing updating', rowsNeedingUpdate);
     for (const { id, hash } of rowsNeedingUpdate) {
         let txAncillaryInfo;
         try {

@@ -10,7 +10,7 @@ const saveAgentDetails = async () => {
         .rightJoin('contract_block_piv', 'contract_block_piv.id', 'agents.fk_cb_id')
         .innerJoin('blocks', 'contract_block_piv.fk_block_id', 'blocks.id')
         .whereNull('agents.id');
-    // v('neededBlocks (agents)', neededBlocks)
+    (0, utils_1.v)('neededBlocks (agents)', neededBlocks);
     let promises = [];
     const queryAgentIdsReadableMsg = {
         "get_agent_ids": {} // This means, "call the query function get_agent_ids with no parameters"
@@ -20,7 +20,7 @@ const saveAgentDetails = async () => {
         const blockHeight = Number.parseInt(blockInfo.height);
         const managerAddress = variables_1.settings.contracts.manager.address;
         const agentsJson = await (0, utils_1.queryContractAtHeight)(managerAddress, queryAgentIdsReadableMsg, blockHeight);
-        // v('agentsJson', agentsJson)
+        (0, utils_1.v)('agentsJson', agentsJson);
         agentsJson.active.map(async (activeAgent) => {
             const activeId = await (0, variables_1.db)('agents')
                 .insert({

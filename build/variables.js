@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.db = exports.updateStateTimerId = exports.getStateTimerId = exports.updateLastHeight = exports.lastHeight = exports.updateBlockHeights = exports.blockHeights = exports.contractAddresses = exports.settings = exports.CHAIN_REGISTRY_URLS = exports.CACHE_LIMIT = exports.RPC_LIMIT = exports.TIMEOUT_CHECK_CHAIN_REGISTRY = exports.TIMEOUT = exports.setAllRPCConnections = exports.allRPCConnections = exports.agents = exports.emptyHeights = exports.blockMap = exports.CHAIN_ID_PREFIX = exports.CHAIN_ID = void 0;
+exports.db = exports.updateStateTimerId = exports.getStateTimerId = exports.updateLastHeight = exports.lastHeight = exports.updateBlockHeights = exports.blockHeights = exports.contractAddresses = exports.settings = exports.VERBOSITY = exports.CHAIN_REGISTRY_URLS = exports.CACHE_LIMIT = exports.RPC_LIMIT = exports.TIMEOUT_CHECK_CHAIN_REGISTRY = exports.TIMEOUT = exports.setAllRPCConnections = exports.allRPCConnections = exports.agents = exports.emptyHeights = exports.blockMap = exports.CHAIN_ID_PREFIX = exports.CHAIN_ID = void 0;
 // Contracts we'll want to look for being called
 const db_1 = require("./db");
 const dotenv_1 = require("dotenv");
@@ -23,6 +23,7 @@ exports.TIMEOUT_CHECK_CHAIN_REGISTRY = Number.parseInt(process.env.TIMEOUT_CHECK
 exports.RPC_LIMIT = Number.parseInt(process.env.RPC_LIMIT);
 exports.CACHE_LIMIT = Number.parseInt(process.env.CACHE_LIMIT);
 exports.CHAIN_REGISTRY_URLS = JSON.parse(process.env.CHAIN_REGISTRY_URLS);
+exports.VERBOSITY = Number.parseInt(process.env.VERBOSITY) === 1;
 exports.settings = JSON.parse(process.env.SETTINGS);
 console.log('settings', exports.settings);
 exports.contractAddresses = Object.keys(exports.settings.contracts).map(c => exports.settings.contracts[c].address);
