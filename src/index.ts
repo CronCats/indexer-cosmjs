@@ -1,34 +1,56 @@
-import {checkRowsToUpdate} from "./checkRowsToUpdate";
-import {checkForLatestBlock} from "./checkForLatestBlock";
-import {addTxDetail} from "./addTxDetail";
+import {checkRowsToUpdate} from "./checkRowsToUpdate"
+import {checkForLatestBlock} from "./checkForLatestBlock"
+import {addTxDetail} from "./addTxDetail"
 import {
-  allRPCClients,
+  allRPCConnections, CHAIN_ID,
   settings,
+  CHAIN_REGISTRY_URLS,
   TIMEOUT,
-  updateStateTimerId
-} from "./variables";
-import {getAllRPCClients} from "./utils";
+  updateStateTimerId, TIMEOUT_CHECK_CHAIN_REGISTRY
+} from "./variables"
+import {checkForMissedBlocks, setRPCClients} from "./utils"
+import fetch from 'node-fetch'
+import {Chain} from "./interfaces"
+
+const getCurrentRPCs = async () => {
+  let rpcs: Chain[] =[]
+  if (Object.keys(CHAIN_REGISTRY_URLS).includes(CHAIN_ID)) {
+    const resp = await fetch(CHAIN_REGISTRY_URLS[CHAIN_ID])
+    const jsonResp = await resp.json()
+    rpcs = jsonResp['apis'].rpc
+  } else {
+    console.error(`Could not find ${CHAIN_ID} in the CHAIN_REGISTRY_URLS environment variable. You probably need to update your env vars.`)
+  }
+  await setRPCClients(rpcs)
+}
 
 // Main entry point
-// This is a recursive function based on a recommendation here:
-// https://developer.mozilla.org/en-US/docs/Web/API/setInterval#ensure_that_execution_duration_is_shorter_than_interval_frequency
 const setup = async () => {
-  // Get the latest block (with basic tx info)
+  // Poll to get the latest block (with basic transaction info but not full details)
   setInterval(() => {
     checkForLatestBlock()
-  }, TIMEOUT);
+  }, TIMEOUT)
+
+  // Update the chain registry endpoints for the designated chain ID
+  setInterval(async () => {
+    await getCurrentRPCs()
+  }, TIMEOUT_CHECK_CHAIN_REGISTRY)
 
   // Fill out extra transaction detail (gas used vs wanted, etc.)
   setInterval(() => addTxDetail(), TIMEOUT * 2)
 
+  // Check for gaps in blocks
+  setInterval(() => checkForMissedBlocks(), TIMEOUT * 2)
+
   // This setTimeout schedules the next call at the end of the current one.
+  // "Call checkRowsToUpdate, let it finish, then wait the timeout amount before calling it again."
   updateStateTimerId(setTimeout(checkRowsToUpdate, TIMEOUT * 2));
 }
 
 if (settings) {
-  getAllRPCClients().then(() => {
-    console.log('allRPCClients', allRPCClients)
-    setup().then(() => console.log('Beginning…'))
+  getCurrentRPCs().then(() => {
+    console.log('allRPCClients', allRPCConnections)
+    setup().then(() => console.log('Alive…'))
   })
 } else {
   console.log('Check the environment variables, please. (Copy .env.template to .env and go from there)')
