@@ -4,7 +4,7 @@ import {
     checkForMissedBlocks,
     getBlockInfo,
     getContractInfo,
-    getLatestBlockHeight,
+    getLatestBlockHeight, v,
 } from "./utils";
 import {SimpleTx} from "./interfaces";
 import {toHex} from "@cosmjs/encoding";
@@ -44,7 +44,7 @@ export const checkForLatestBlock = async () => {
     let block: BlockResponse
     try {
         block = await getBlockInfo(currentHeight)
-        // v('block', block)
+        v('block', block)
         const blockTime = block.block.header.time
         const isoBlockTime: string = new Date(blockTime.toISOString()).toISOString()
         const blockTxs = block.block.txs
@@ -78,23 +78,23 @@ export const handleBlockTxs = async (height: number, blockTxs, isoBlockTime: str
         };
 
         const decodedTx = decodeTxRaw(tx)
-        // v('decodedTx', decodedTx)
+        v('decodedTx', decodedTx)
         simpleTx.memo = decodedTx.body.memo
         let wasmExecMsgs = []
         decodedTx.body.messages.forEach(m => {
             if (isMsgExecuteEncodeObject(m)) {
                 let msg = MsgExecuteContract.decode(m.value)
-                // v('msg', msg)
+                v('msg', msg)
                 // Check if this is among the contracts we care about
                 if (!contractAddresses.includes(msg.contract)) {
                     // console.log(`Called a contract ${msg.contract} but it's not one of ours`)
                 } else {
                     const innerMsg = JSON.parse(Buffer.from(msg.msg).toString())
-                    // v('innerMsg', innerMsg)
+                    v('innerMsg', innerMsg)
                     msg.msg = innerMsg
                     wasmExecMsgs.push(msg)
                 }
-                // v('msg', msg)
+                v('msg', msg)
             }
         })
         if (wasmExecMsgs.length !== 0) {

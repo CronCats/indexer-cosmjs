@@ -8,7 +8,7 @@ export const saveTaskDetails = async () => {
         .rightJoin('contract_block_piv', 'contract_block_piv.id', 'tasks.fk_cb_id')
         .innerJoin('blocks', 'contract_block_piv.fk_block_id', 'blocks.id')
         .whereNull('tasks.id')
-    // v('neededBlocks (tasks)', neededBlocks)
+    v('neededBlocks (tasks)', neededBlocks)
     let promises = []
     const getTasksMsg = {
         get_tasks: {
@@ -25,7 +25,6 @@ export const saveTaskDetails = async () => {
 
 const saveTasks = async (contractAddress, getTasksMsg, blockHeight, contractBlockIdFk) => {
     const tasks = await queryContractAtHeight(contractAddress, getTasksMsg, blockHeight)
-    // v('saveTasks tasks', tasks)
     let promises = []
     for (const task of tasks) {
         promises.push(saveTask(task, contractBlockIdFk))
@@ -48,7 +47,7 @@ const saveTask = async (task, contractBlockIdFk) => {
         intervalType = Object.keys(task.interval)[0]
         intervalValue = task.interval[intervalType].toString()
     }
-    v('saveTask task', task)
+    v('Saving task…', task)
     let taskToInsert = {
         fk_cb_id: contractBlockIdFk,
         hash: task.task_hash,

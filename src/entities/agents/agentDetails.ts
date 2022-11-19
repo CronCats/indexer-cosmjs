@@ -15,7 +15,7 @@ export const saveAgentInfo = async (agentAddress, rowId, blockInfo) => {
     }
     const managerAddress = settings.contracts.manager.address
     const agentInfo = await queryContractAtHeight(managerAddress, queryGetAgentReadableMsg, blockHeight)
-    // v('agent info', agentInfo)
+    v('agent info', agentInfo)
 
     let promises = []
     promises.push(

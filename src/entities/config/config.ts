@@ -1,7 +1,7 @@
 // config table
 
 import {db, settings} from "../../variables";
-import {queryContractAtHeight} from "../../utils";
+import {queryContractAtHeight, v} from "../../utils";
 import {saveConfigBalances} from "./configBalances";
 
 export const saveConfigDetails = async () => {
@@ -9,7 +9,7 @@ export const saveConfigDetails = async () => {
         .rightJoin('contract_block_piv', 'contract_block_piv.id', 'config.fk_cb_id')
         .innerJoin('blocks', 'contract_block_piv.fk_block_id', 'blocks.id')
         .whereNull('config.id')
-    // v('neededBlocks (config)', neededBlocks)
+    v('neededBlocks (config)', neededBlocks)
     let promises = []
     const getConfigMsg = {
         // get_config function takes no parameters, hence {} being an empty object where you'd normally put params
@@ -28,7 +28,7 @@ export const saveConfigDetails = async () => {
 
 const saveConfig = async (contractAddress, getConfigMsg, blockHeight, contractBlockIdFk) => {
     const config = await queryContractAtHeight(contractAddress, getConfigMsg, blockHeight)
-    // v('config', config)
+    v('config', config)
     // Insert row into config
     const configFkId = await db('config').insert({
         fk_cb_id: contractBlockIdFk,

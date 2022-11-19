@@ -3,7 +3,7 @@ import {getTxInfo, v} from "./utils";
 
 export const addTxDetail = async () => {
     const rowsNeedingUpdate = await db('transactions').select('hash', 'id').where('is_complete', false).limit(6)
-    // v('Transaction rows needing updating', rowsNeedingUpdate)
+    v('Transaction rows needing updating', rowsNeedingUpdate)
     for (const { id, hash } of rowsNeedingUpdate) {
         let txAncillaryInfo
         try {

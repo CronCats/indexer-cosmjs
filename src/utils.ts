@@ -6,7 +6,7 @@ import {
     blockHeights,
     RPC_LIMIT,
     setAllRPCConnections,
-    updateBlockHeights
+    updateBlockHeights, VERBOSITY
 } from "./variables";
 import {BlockResponse, Tendermint34Client, TxResponse} from "@cosmjs/tendermint-rpc";
 import {QueryClient} from "@cosmjs/stargate";
@@ -56,7 +56,9 @@ export const base64FromBytes = (arr) => {
 // This offers a more verbose way to display an object
 // avoiding showing stuff like [Object object]
 export const v = (message, data) => {
-    console.log(message, util.inspect(data, false, null, true))
+    if (VERBOSITY === true) {
+        console.log(message, util.inspect(data, false, null, true))
+    }
 }
 
 // Not tremendously important to get right yet
@@ -101,7 +103,7 @@ export const checkForMissedBlocks = async () => {
             const blockTxs = block.block.txs
             const blockTime = block.block.header.time;
             const isoBlockTime = new Date(blockTime.toISOString()).toISOString()
-            // v('isoBlockTime', isoBlockTime)
+            v('isoBlockTime', isoBlockTime)
 
             console.log('Fixing missed block', missingBlockNum)
             await handleBlockTxs(missingBlockNum, blockTxs, isoBlockTime)

@@ -1,7 +1,7 @@
 // agents table
 
 import {db, settings} from "../../variables";
-import {queryContractAtHeight} from "../../utils";
+import {queryContractAtHeight, v} from "../../utils";
 import {saveAgentInfo} from "./agentDetails";
 
 export const saveAgentDetails = async () => {
@@ -9,7 +9,7 @@ export const saveAgentDetails = async () => {
         .rightJoin('contract_block_piv', 'contract_block_piv.id', 'agents.fk_cb_id')
         .innerJoin('blocks', 'contract_block_piv.fk_block_id', 'blocks.id')
         .whereNull('agents.id')
-    // v('neededBlocks (agents)', neededBlocks)
+    v('neededBlocks (agents)', neededBlocks)
     let promises = []
     const queryAgentIdsReadableMsg = {
         "get_agent_ids": {} // This means, "call the query function get_agent_ids with no parameters"
@@ -20,7 +20,7 @@ export const saveAgentDetails = async () => {
         const managerAddress = settings.contracts.manager.address
         const agentsJson = await queryContractAtHeight(managerAddress, queryAgentIdsReadableMsg, blockHeight)
 
-        // v('agentsJson', agentsJson)
+        v('agentsJson', agentsJson)
         agentsJson.active.map(async activeAgent => {
             const activeId = await db('agents')
                 .insert({

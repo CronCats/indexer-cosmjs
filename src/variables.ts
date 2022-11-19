@@ -23,6 +23,7 @@ export const TIMEOUT_CHECK_CHAIN_REGISTRY: number = Number.parseInt(process.env.
 export const RPC_LIMIT: number = Number.parseInt(process.env.RPC_LIMIT)
 export const CACHE_LIMIT: number = Number.parseInt(process.env.CACHE_LIMIT)
 export const CHAIN_REGISTRY_URLS: any[] = JSON.parse(process.env.CHAIN_REGISTRY_URLS)
+export const VERBOSITY: boolean = Number.parseInt(process.env.VERBOSITY) === 1
 
 export let settings = JSON.parse(process.env.SETTINGS)
 console.log('settings', settings)
