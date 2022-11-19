@@ -49,10 +49,10 @@ const saveAgentInfo = async (agentAddress, rowId, blockInfo) => {
     promises = [];
     // Get token balances from protocol at a given height
     const requestProtocolData = Uint8Array.from(query_1.QueryAllBalancesRequest.encode({ address: agentAddress }).finish());
-    const protocol_balances_encoded = await variables_1.tmClientQuery.queryUnverified(`/cosmos.bank.v1beta1.Query/AllBalances`, requestProtocolData, Number.parseInt(blockInfo.height));
-    const protocol_balances = query_1.QueryAllBalancesResponse.decode(protocol_balances_encoded);
+    const protocolBalancesEncoded = await (0, utils_1.queryUnverified)('/cosmos.bank.v1beta1.Query/AllBalances', requestProtocolData, Number.parseInt(blockInfo.height));
+    const protocolBalances = query_1.QueryAllBalancesResponse.decode(protocolBalancesEncoded);
     // We're assuming there is no pagination :/. come fix it friend?
-    for (const balance of protocol_balances.balances) {
+    for (const balance of protocolBalances.balances) {
         promises.push((0, variables_1.db)('agent_balances').insert({
             fk_agent_id: rowId,
             type: 'protocol',
@@ -61,16 +61,5 @@ const saveAgentInfo = async (agentAddress, rowId, blockInfo) => {
         }));
     }
     await Promise.all(promises);
-    // TODO: (!!!)
-    // This might be kinda helpful
-    // Ensure we've paginated through all protocol balances
-    // const allBalances = [];
-    // let startAtKey
-    // do {
-    //     const { balances, pagination } = protocol_balances
-    //     const loadedBalances = balances || [];
-    //     allBalances.push(...loadedBalances);
-    //     startAtKey = pagination?.nextKey;
-    // } while (startAtKey?.length !== 0);
 };
 exports.saveAgentInfo = saveAgentInfo;

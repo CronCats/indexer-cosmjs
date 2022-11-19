@@ -23,7 +23,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.queryContractAtHeight = exports.bigIntMe = exports.getAllRPCClients = exports.checkForMissedBlocks = exports.addSeenHeight = exports.v = exports.base64FromBytes = exports.bytesFromBase64 = void 0;
+exports.getContractInfo = exports.queryUnverified = exports.getTxInfo = exports.getBlockInfo = exports.getLatestBlockHeight = exports.queryContractAtHeight = exports.bigIntMe = exports.setRPCClients = exports.checkForMissedBlocks = exports.addSeenHeight = exports.v = exports.base64FromBytes = void 0;
 const util = __importStar(require("util"));
 const cosmwasm_stargate_1 = require("@cosmjs/cosmwasm-stargate");
 const checkForLatestBlock_1 = require("./checkForLatestBlock");
@@ -31,6 +31,7 @@ const variables_1 = require("./variables");
 const tendermint_rpc_1 = require("@cosmjs/tendermint-rpc");
 const stargate_1 = require("@cosmjs/stargate");
 const query_1 = require("cosmjs-types/cosmwasm/wasm/v1/query");
+const encoding_1 = require("@cosmjs/encoding");
 // Guess you can't change "var" below :shrug:
 var globalThis = (() => {
     if (typeof globalThis !== "undefined") {
@@ -47,21 +48,6 @@ var globalThis = (() => {
     }
     throw "Unable to locate global object";
 })();
-// Currently unused
-function bytesFromBase64(b64) {
-    if (globalThis.Buffer) {
-        return Uint8Array.from(globalThis.Buffer.from(b64, "base64"));
-    }
-    else {
-        const bin = globalThis.atob(b64);
-        const arr = new Uint8Array(bin.length);
-        for (let i = 0; i < bin.length; ++i) {
-            arr[i] = bin.charCodeAt(i);
-        }
-        return arr;
-    }
-}
-exports.bytesFromBase64 = bytesFromBase64;
 const base64FromBytes = (arr) => {
     if (globalThis.Buffer) {
         return globalThis.Buffer.from(arr).toString("base64");
@@ -71,6 +57,7 @@ const base64FromBytes = (arr) => {
         arr.forEach((byte) => {
             bin.push(String.fromCharCode(byte));
         });
+        // TODO: fix this deprecated btoa
         return globalThis.btoa(bin.join(""));
     }
 };
@@ -112,7 +99,7 @@ const addSeenHeight = async (height) => {
     }
 };
 exports.addSeenHeight = addSeenHeight;
-const checkForMissedBlocks = async (tmClient) => {
+const checkForMissedBlocks = async () => {
     let keepGoing = false;
     // We use length - 1 since we can't compare past that
     for (let i = 0; i < variables_1.blockHeights.length - 1; i++) {
@@ -121,26 +108,30 @@ const checkForMissedBlocks = async (tmClient) => {
             keepGoing = true;
             // Do stuff to add block
             const missingBlockNum = variables_1.blockHeights[i] - 1;
-            const block = await tmClient.block(missingBlockNum);
+            const block = await (0, exports.getBlockInfo)(missingBlockNum);
             const blockTxs = block.block.txs;
             const blockTime = block.block.header.time;
-            const isoBlockTime = new Date(blockTime).toISOString();
+            const isoBlockTime = new Date(blockTime.toISOString()).toISOString();
             // v('isoBlockTime', isoBlockTime)
             console.log('Fixing missed block', missingBlockNum);
             await (0, checkForLatestBlock_1.handleBlockTxs)(missingBlockNum, blockTxs, isoBlockTime);
-            // We can just do one at a time
-            break;
         }
     }
 };
 exports.checkForMissedBlocks = checkForMissedBlocks;
-const getAllRPCClients = async () => {
-    for (let i = 0; i < variables_1.thisChain.apis.rpc.length; i++) {
-        const address = variables_1.thisChain.apis.rpc[i].address;
+const setRPCClients = async (chains) => {
+    let newRPCs = [];
+    for (let i = 0; i < chains.length; i++) {
+        const address = chains[i].address;
         try {
             const client = await tendermint_rpc_1.Tendermint34Client.connect(address);
-            if (variables_1.allRPCClients.length < variables_1.RPC_LIMIT) {
-                variables_1.allRPCClients.push(client);
+            const queryClient = stargate_1.QueryClient.withExtensions(client, cosmwasm_stargate_1.setupWasmExtension);
+            let rpcConnection = {
+                client,
+                queryClient
+            };
+            if (newRPCs.length < variables_1.RPC_LIMIT) {
+                newRPCs.push(rpcConnection);
             }
             else {
                 break;
@@ -150,16 +141,13 @@ const getAllRPCClients = async () => {
             // Sometimes, chain-registry will have an outdated endpoint, carry on
             console.warn('Looks like chain-registry has an issue with this RPC', {
                 rpc: address,
-                error: e
+                errorCode: e.code
             });
         }
     }
-    // oh yeah, I did not finish having the connections crawl along the list from chain-registry
-    (0, variables_1.setTmClient)(await tendermint_rpc_1.Tendermint34Client.connect(variables_1.rpcAddress));
-    console.log('setting up wasm extension here');
-    (0, variables_1.setTmClientQuery)(stargate_1.QueryClient.withExtensions(variables_1.tmClient, cosmwasm_stargate_1.setupWasmExtension));
+    (0, variables_1.setAllRPCConnections)(newRPCs);
 };
-exports.getAllRPCClients = getAllRPCClients;
+exports.setRPCClients = setRPCClients;
 const bigIntMe = (theNotBigIntYet) => {
     return BigInt.asUintN(128, theNotBigIntYet);
 };
@@ -169,11 +157,11 @@ const queryContractAtHeight = async (address, args, height) => {
     // Turn JSON object into a string, then into buffer of bytes
     const queryReadableBytes = Buffer.from(JSON.stringify(args));
     const queryBase64 = (0, exports.base64FromBytes)(queryReadableBytes);
-    const requestContractData = Uint8Array.from(query_1.QuerySmartContractStateRequest.encode({
+    const requestContractData = query_1.QuerySmartContractStateRequest.encode({
         address,
         queryData: queryBase64
-    }).finish());
-    const queryRespEncoded = await variables_1.tmClientQuery.queryUnverified(`/cosmwasm.wasm.v1.Query/SmartContractState`, requestContractData, height);
+    }).finish();
+    const queryRespEncoded = await (0, exports.queryUnverified)('/cosmwasm.wasm.v1.Query/SmartContractState', requestContractData, height);
     const queryResponseDecoded = query_1.QuerySmartContractStateResponse.decode(queryRespEncoded);
     const queryResponseBase64DecodedData = (0, exports.base64FromBytes)(queryResponseDecoded.data);
     // TODO: atob seems to be deprecated, let's update it
@@ -182,3 +170,36 @@ const queryContractAtHeight = async (address, args, height) => {
     return queryResponseJson;
 };
 exports.queryContractAtHeight = queryContractAtHeight;
+const getLatestBlockHeight = async () => {
+    // This uses the "regular" client, not the QueryClient
+    const clientStatuses = variables_1.allRPCConnections.map(conn => conn.client.status());
+    const firstBlockHeight = (await Promise.any(clientStatuses)).syncInfo.latestBlockHeight;
+    return firstBlockHeight;
+};
+exports.getLatestBlockHeight = getLatestBlockHeight;
+const getBlockInfo = async (height) => {
+    // This uses the "regular" client, not the QueryClient
+    const clientBlocks = variables_1.allRPCConnections.map(conn => conn.client.block(height));
+    const blockDetails = await Promise.any(clientBlocks);
+    return blockDetails;
+};
+exports.getBlockInfo = getBlockInfo;
+const getTxInfo = async (hash) => {
+    const txHash = Buffer.from((0, encoding_1.fromHex)(hash));
+    const clientTxs = variables_1.allRPCConnections.map(conn => conn.client.tx({ hash: txHash }));
+    const txDetails = await Promise.any(clientTxs);
+    return txDetails;
+};
+exports.getTxInfo = getTxInfo;
+const queryUnverified = async (path, requestObj, height) => {
+    const queryClientUnverifieds = variables_1.allRPCConnections.map(conn => conn.queryClient.queryUnverified(path, requestObj, height));
+    const queryRespEncoded = await Promise.any(queryClientUnverifieds);
+    return queryRespEncoded;
+};
+exports.queryUnverified = queryUnverified;
+const getContractInfo = async (address) => {
+    const queryClientContractInfos = variables_1.allRPCConnections.map(conn => conn.queryClient.wasm.getContractInfo(address));
+    const queryContractInfo = await Promise.any(queryClientContractInfos);
+    return queryContractInfo;
+};
+exports.getContractInfo = getContractInfo;

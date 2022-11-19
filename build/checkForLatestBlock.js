@@ -12,26 +12,32 @@ const db_1 = require("./db");
 const checkForLatestBlock = async () => {
     // TODO use Promise.any probably since it's not mission-critical that we the latest height
     // See: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/race#comparison_with_promise.any
-    const currentHeight = (await variables_1.tmClient.status()).syncInfo.latestBlockHeight;
+    const currentHeight = await (0, utils_1.getLatestBlockHeight)();
     if (currentHeight === variables_1.lastHeight) {
-        // Might as well use downtime to check for missed blocks
-        await (0, utils_1.checkForMissedBlocks)(variables_1.tmClient);
+        // Nothing to see, move along, solider
         return;
     }
     if (variables_1.lastHeight !== 0 && currentHeight - variables_1.lastHeight !== 1) {
-        await (0, utils_1.checkForMissedBlocks)(variables_1.tmClient);
+        await (0, utils_1.checkForMissedBlocks)();
     }
     // Logic for new block that came in
     (0, variables_1.updateLastHeight)(currentHeight);
     console.log('New block height:', currentHeight);
-    const block = await variables_1.tmClient.block(currentHeight);
-    const blockTime = block.block.header.time;
-    const isoBlockTime = new Date(blockTime).toISOString();
-    const blockTxs = block.block.txs;
-    (0, exports.handleBlockTxs)(currentHeight, blockTxs, isoBlockTime);
+    let block;
+    try {
+        block = await (0, utils_1.getBlockInfo)(currentHeight);
+        // v('block', block)
+        const blockTime = block.block.header.time;
+        const isoBlockTime = new Date(blockTime.toISOString()).toISOString();
+        const blockTxs = block.block.txs;
+        (0, exports.handleBlockTxs)(currentHeight, blockTxs, isoBlockTime);
+    }
+    catch (e) {
+        console.warn(`Issue trying to get block info for height ${currentHeight}`);
+    }
 };
 exports.checkForLatestBlock = checkForLatestBlock;
-const handleBlockTxs = async (height, blockTxs, blockTime) => {
+const handleBlockTxs = async (height, blockTxs, isoBlockTime) => {
     if (blockTxs.length === 0) {
         // Update the array knowing that we saw it, then bail
         await (0, utils_1.addSeenHeight)(height);
@@ -56,17 +62,15 @@ const handleBlockTxs = async (height, blockTxs, blockTime) => {
         let wasmExecMsgs = [];
         decodedTx.body.messages.forEach(m => {
             if ((0, cosmwasm_stargate_1.isMsgExecuteEncodeObject)(m)) {
-                const decodedMsgValue = tx_1.MsgExecuteContract.decode(m.value);
-                // v('decodedMsgValue', decodedMsgValue)
                 let msg = tx_1.MsgExecuteContract.decode(m.value);
+                // v('msg', msg)
                 // Check if this is among the contracts we care about
                 if (!variables_1.contractAddresses.includes(msg.contract)) {
-                    // v(`Called a contract ${msg.contract} but it's not one of ours`)
+                    // console.log(`Called a contract ${msg.contract} but it's not one of ours`)
                 }
                 else {
-                    // console.log('msg', util.inspect(msg, false, null, true))
                     const innerMsg = JSON.parse(Buffer.from(msg.msg).toString());
-                    // console.log('innerMsg', innerMsg)
+                    // v('innerMsg', innerMsg)
                     msg.msg = innerMsg;
                     wasmExecMsgs.push(msg);
                 }
@@ -79,9 +83,11 @@ const handleBlockTxs = async (height, blockTxs, blockTime) => {
         }
     });
     if (wasmExecTxs.length !== 0) {
+        await (0, utils_1.addSeenHeight)(height);
+        // Go on to save the block information
         const blockDetail = {
-            height: height,
-            time: blockTime,
+            height,
+            time: isoBlockTime,
             txs: wasmExecTxs
         };
         await saveBlock(blockDetail, chainNetworkFkId);
@@ -96,7 +102,6 @@ exports.handleBlockTxs = handleBlockTxs;
 const saveBlock = async (blockDetail, chainNetworkFkId) => {
     const height = blockDetail.height;
     const time = blockDetail.time;
-    await (0, utils_1.addSeenHeight)(height);
     variables_1.blockMap.set(height, blockDetail);
     let blockEntry;
     let txEntry;
@@ -154,24 +159,9 @@ const saveBlock = async (blockDetail, chainNetworkFkId) => {
         for await (const contractDBInfo of contractsInvolvedInBlock) {
             const contractAddress = contractDBInfo[0]; // juno1abc…
             const contractFkId = contractDBInfo[1]; // 6
-            const contractInfoResp = await variables_1.tmClientQuery.wasm.getContractInfo(contractAddress);
-            /*
-                Note: there are also these fields if we want to add them in the future
-                {
-                  address: 'juno1v3p9fshhnngmfndgj58e0f35lz0ndl38rc72knuv2f3y2jpanhlq564clt',
-                  contractInfo: {
-                    codeId: Long { low: 1707, high: 0, unsigned: true },
-                    creator: 'juno1yhqft6d2msmzpugdjtawsgdlwvgq3samrm5wrw',
-                    admin: 'juno1yhqft6d2msmzpugdjtawsgdlwvgq3samrm5wrw',
-                    label: 'CronCat-manager-alpha',
-                    created: undefined,
-                    ibcPortId: '',
-                    extension: undefined
-                  }
-                }
-             */
+            const contractInfoResp = await (0, utils_1.getContractInfo)(contractAddress);
             const codeId = (0, utils_1.bigIntMe)(contractInfoResp.contractInfo.codeId);
-            const cbPivInsertResp = await (0, variables_1.db)('contract_block_piv')
+            await (0, variables_1.db)('contract_block_piv')
                 .insert({
                 fk_contract_id: contractFkId,
                 fk_block_id: blockIdFk,
@@ -193,7 +183,6 @@ const saveBlock = async (blockDetail, chainNetworkFkId) => {
         (0, variables_1.updateBlockHeights)(variables_1.blockHeights.slice(0, variables_1.CACHE_LIMIT));
         variables_1.emptyHeights.forEach(height => {
             if (height < variables_1.blockHeights[variables_1.blockHeights.length - 1]) {
-                console.log('deleting old height', height);
                 variables_1.emptyHeights.delete(height);
             }
         });
