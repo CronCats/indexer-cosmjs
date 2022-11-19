@@ -1,8 +1,8 @@
 // agents (extra detail)
 // agent_balances table
 
-import {queryContractAtHeight, v} from "../../utils";
-import {db, settings, tmClientQuery} from "../../variables";
+import {queryContractAtHeight, queryUnverified, v} from "../../utils";
+import {db, settings} from "../../variables";
 import {QueryAllBalancesRequest, QueryAllBalancesResponse} from "cosmjs-types/cosmos/bank/v1beta1/query";
 
 export const saveAgentInfo = async (agentAddress, rowId, blockInfo) => {
@@ -62,11 +62,11 @@ export const saveAgentInfo = async (agentAddress, rowId, blockInfo) => {
             { address: agentAddress }
         ).finish(),
     );
-    const protocol_balances_encoded = await tmClientQuery.queryUnverified(`/cosmos.bank.v1beta1.Query/AllBalances`, requestProtocolData, Number.parseInt(blockInfo.height));
-    const protocol_balances: QueryAllBalancesResponse = QueryAllBalancesResponse.decode(protocol_balances_encoded);
+    const protocolBalancesEncoded = await queryUnverified('/cosmos.bank.v1beta1.Query/AllBalances', requestProtocolData, Number.parseInt(blockInfo.height));
+    const protocolBalances: QueryAllBalancesResponse = QueryAllBalancesResponse.decode(protocolBalancesEncoded);
 
     // We're assuming there is no pagination :/. come fix it friend?
-    for (const balance of protocol_balances.balances) {
+    for (const balance of protocolBalances.balances) {
         promises.push(
             db('agent_balances').insert({
                 fk_agent_id: rowId,
@@ -77,16 +77,4 @@ export const saveAgentInfo = async (agentAddress, rowId, blockInfo) => {
         )
     }
     await Promise.all(promises)
-
-    // TODO: (!!!)
-    // This might be kinda helpful
-    // Ensure we've paginated through all protocol balances
-    // const allBalances = [];
-    // let startAtKey
-    // do {
-    //     const { balances, pagination } = protocol_balances
-    //     const loadedBalances = balances || [];
-    //     allBalances.push(...loadedBalances);
-    //     startAtKey = pagination?.nextKey;
-    // } while (startAtKey?.length !== 0);
 }
