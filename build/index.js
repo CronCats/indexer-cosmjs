@@ -9,16 +9,21 @@ const addTxDetail_1 = require("./addTxDetail");
 const variables_1 = require("./variables");
 const utils_1 = require("./utils");
 const node_fetch_1 = __importDefault(require("node-fetch"));
+// This downloads the latest version from chain-registry 😐
 const getCurrentRPCs = async () => {
     let rpcs = [];
     if (Object.keys(variables_1.CHAIN_REGISTRY_URLS).includes(variables_1.CHAIN_ID)) {
         const resp = await (0, node_fetch_1.default)(variables_1.CHAIN_REGISTRY_URLS[variables_1.CHAIN_ID]);
         const jsonResp = await resp.json();
         rpcs = jsonResp['apis'].rpc;
+        rpcs = (0, utils_1.skipRPCs)(rpcs);
+        rpcs = (0, utils_1.addRPCs)(rpcs);
     }
     else {
         console.error(`Could not find ${variables_1.CHAIN_ID} in the CHAIN_REGISTRY_URLS environment variable. You probably need to update your env vars.`);
     }
+    // Randomize order
+    rpcs = (0, utils_1.shuffleRPCs)(rpcs);
     await (0, utils_1.setRPCClients)(rpcs);
 };
 // Main entry point
