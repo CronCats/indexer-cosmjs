@@ -103,6 +103,7 @@ export const handleBlockTxs = async (height: number, blockTxs, isoBlockTime: str
         }
     })
     if (wasmExecTxs.length !== 0) {
+        console.log('Found transaction(s) interacting with our contract(s) on this block…')
         await addSeenHeight(height)
         // Go on to save the block information
         const blockDetail = {

@@ -2,10 +2,11 @@ import * as util from "util";
 import {setupWasmExtension} from "@cosmjs/cosmwasm-stargate";
 import {handleBlockTxs} from "./checkForLatestBlock";
 import {
+    ADD_RPC_ADDRESSES, ADD_RPC_ADDRESSES_ALWAYS,
     allRPCConnections,
     blockHeights,
     RPC_LIMIT,
-    setAllRPCConnections,
+    setAllRPCConnections, SKIP_RPC_ADDRESSES,
     updateBlockHeights, VERBOSITY
 } from "./variables";
 import {BlockResponse, Tendermint34Client, TxResponse} from "@cosmjs/tendermint-rpc";
@@ -111,6 +112,16 @@ export const checkForMissedBlocks = async () => {
     }
 }
 
+// Credit to Fisher-Yates, SO and eventually https://www.webmound.com/shuffle-javascript-array
+export const shuffleRPCs = (rpcs) => {
+    rpcs.reverse().forEach((item, index) => {
+        const j = Math.floor(Math.random() * (index + 1));
+        [rpcs[index], rpcs[j]] = [rpcs[j], rpcs[index]];
+    });
+
+    return rpcs;
+};
+
 export const setRPCClients = async (chains: Chain[]) => {
     let newRPCs = []
     for (let i = 0; i < chains.length; i++) {
@@ -128,13 +139,33 @@ export const setRPCClients = async (chains: Chain[]) => {
                 break
             }
         } catch (e) {
-            // Sometimes, chain-registry will have an outdated endpoint, carry on
-            console.warn('Looks like chain-registry has an issue with this RPC', {
+            // Sometimes, chain-registry will have an outdated endpoint and so on. It's fine, carry on
+            console.warn('Looks like chain-registry (or one of the ones added via ADD_RPC_ADDRESSES) has an issue. Skipping. Errors details…', {
                 rpc: address,
                 errorCode: e.code
             })
         }
     }
+
+    // Add all RPCs specified in ADD_RPC_ADDRESSES_ALWAYS env var, which is
+    // the only time we're allowed to exceed the RPC_LIMIT
+    for (const alwaysRPCAddress of ADD_RPC_ADDRESSES_ALWAYS) {
+        try {
+            const client: any = await Tendermint34Client.connect(alwaysRPCAddress)
+            const queryClient = QueryClient.withExtensions(client, setupWasmExtension)
+            let alwaysRPCConnection: RpcConnection = {
+                client,
+                queryClient
+            }
+            newRPCs.push(alwaysRPCConnection)
+        } catch (e) {
+            console.warn('An endpoint in ADD_RPC_ADDRESSES_ALWAYS has an issue connecting. Errors details…', {
+                rpc: alwaysRPCAddress,
+                errorCode: e.code
+            })
+        }
+    }
+
     setAllRPCConnections(newRPCs)
 }
 
@@ -160,6 +191,31 @@ export const queryContractAtHeight = async (address: string, args: object, heigh
     const queryResponseRawJson = atob(queryResponseBase64DecodedData);
     const queryResponseJson = JSON.parse(queryResponseRawJson)
     return queryResponseJson
+}
+
+export const skipRPCs = (rpcs: Chain[]): Chain[] => {
+    const res = rpcs.filter(rpc => {
+        for (const skipRPC of SKIP_RPC_ADDRESSES) {
+            if (skipRPC === rpc.address) {
+                return false
+            } else return true
+        }
+    })
+    return res
+}
+
+export const addRPCs = (rpcs: Chain[]): Chain[] => {
+    let res: Chain[] = rpcs
+    const allCurrentRPCAddress = rpcs.map(rpc => rpc.address)
+    for (const rpcAddress of ADD_RPC_ADDRESSES) {
+        // Don't add if it's already there
+        if (allCurrentRPCAddress.includes(rpcAddress)) continue
+        rpcs.push({
+            address: rpcAddress
+        })
+    }
+
+    return res
 }
 
 export const getLatestBlockHeight = async (): Promise<number> => {

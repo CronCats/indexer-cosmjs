@@ -8,19 +8,24 @@ import {
   TIMEOUT,
   updateStateTimerId, TIMEOUT_CHECK_CHAIN_REGISTRY
 } from "./variables"
-import {checkForMissedBlocks, setRPCClients} from "./utils"
+import {addRPCs, checkForMissedBlocks, setRPCClients, shuffleRPCs, skipRPCs} from "./utils"
 import fetch from 'node-fetch'
 import {Chain} from "./interfaces"
 
+// This downloads the latest version from chain-registry 😐
 const getCurrentRPCs = async () => {
   let rpcs: Chain[] =[]
   if (Object.keys(CHAIN_REGISTRY_URLS).includes(CHAIN_ID)) {
     const resp = await fetch(CHAIN_REGISTRY_URLS[CHAIN_ID])
     const jsonResp = await resp.json()
     rpcs = jsonResp['apis'].rpc
+    rpcs = skipRPCs(rpcs)
+    rpcs = addRPCs(rpcs)
   } else {
     console.error(`Could not find ${CHAIN_ID} in the CHAIN_REGISTRY_URLS environment variable. You probably need to update your env vars.`)
   }
+  // Randomize order
+  rpcs = shuffleRPCs(rpcs)
   await setRPCClients(rpcs)
 }
 
