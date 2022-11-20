@@ -23,7 +23,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getContractInfo = exports.queryUnverified = exports.getTxInfo = exports.getBlockInfo = exports.getLatestBlockHeight = exports.queryContractAtHeight = exports.bigIntMe = exports.setRPCClients = exports.checkForMissedBlocks = exports.addSeenHeight = exports.v = exports.base64FromBytes = void 0;
+exports.getContractInfo = exports.queryUnverified = exports.getTxInfo = exports.getBlockInfo = exports.getLatestBlockHeight = exports.addRPCs = exports.skipRPCs = exports.queryContractAtHeight = exports.bigIntMe = exports.setRPCClients = exports.shuffleRPCs = exports.checkForMissedBlocks = exports.addSeenHeight = exports.v = exports.base64FromBytes = void 0;
 const util = __importStar(require("util"));
 const cosmwasm_stargate_1 = require("@cosmjs/cosmwasm-stargate");
 const checkForLatestBlock_1 = require("./checkForLatestBlock");
@@ -121,6 +121,15 @@ const checkForMissedBlocks = async () => {
     }
 };
 exports.checkForMissedBlocks = checkForMissedBlocks;
+// Credit to Fisher-Yates, SO and eventually https://www.webmound.com/shuffle-javascript-array
+const shuffleRPCs = (rpcs) => {
+    rpcs.reverse().forEach((item, index) => {
+        const j = Math.floor(Math.random() * (index + 1));
+        [rpcs[index], rpcs[j]] = [rpcs[j], rpcs[index]];
+    });
+    return rpcs;
+};
+exports.shuffleRPCs = shuffleRPCs;
 const setRPCClients = async (chains) => {
     let newRPCs = [];
     for (let i = 0; i < chains.length; i++) {
@@ -140,9 +149,28 @@ const setRPCClients = async (chains) => {
             }
         }
         catch (e) {
-            // Sometimes, chain-registry will have an outdated endpoint, carry on
-            console.warn('Looks like chain-registry has an issue with this RPC', {
+            // Sometimes, chain-registry will have an outdated endpoint and so on. It's fine, carry on
+            console.warn('Looks like chain-registry (or one of the ones added via ADD_RPC_ADDRESSES) has an issue. Skipping. Errors details…', {
                 rpc: address,
+                errorCode: e.code
+            });
+        }
+    }
+    // Add all RPCs specified in ADD_RPC_ADDRESSES_ALWAYS env var, which is
+    // the only time we're allowed to exceed the RPC_LIMIT
+    for (const alwaysRPCAddress of variables_1.ADD_RPC_ADDRESSES_ALWAYS) {
+        try {
+            const client = await tendermint_rpc_1.Tendermint34Client.connect(alwaysRPCAddress);
+            const queryClient = stargate_1.QueryClient.withExtensions(client, cosmwasm_stargate_1.setupWasmExtension);
+            let alwaysRPCConnection = {
+                client,
+                queryClient
+            };
+            newRPCs.push(alwaysRPCConnection);
+        }
+        catch (e) {
+            console.warn('An endpoint in ADD_RPC_ADDRESSES_ALWAYS has an issue connecting. Errors details…', {
+                rpc: alwaysRPCAddress,
                 errorCode: e.code
             });
         }
@@ -172,6 +200,33 @@ const queryContractAtHeight = async (address, args, height) => {
     return queryResponseJson;
 };
 exports.queryContractAtHeight = queryContractAtHeight;
+const skipRPCs = (rpcs) => {
+    const res = rpcs.filter(rpc => {
+        for (const skipRPC of variables_1.SKIP_RPC_ADDRESSES) {
+            if (skipRPC === rpc.address) {
+                return false;
+            }
+            else
+                return true;
+        }
+    });
+    return res;
+};
+exports.skipRPCs = skipRPCs;
+const addRPCs = (rpcs) => {
+    let res = rpcs;
+    const allCurrentRPCAddress = rpcs.map(rpc => rpc.address);
+    for (const rpcAddress of variables_1.ADD_RPC_ADDRESSES) {
+        // Don't add if it's already there
+        if (allCurrentRPCAddress.includes(rpcAddress))
+            continue;
+        rpcs.push({
+            address: rpcAddress
+        });
+    }
+    return res;
+};
+exports.addRPCs = addRPCs;
 const getLatestBlockHeight = async () => {
     // This uses the "regular" client, not the QueryClient
     const clientStatuses = variables_1.allRPCConnections.map(conn => conn.client.status());
