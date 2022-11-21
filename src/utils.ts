@@ -194,13 +194,12 @@ export const queryContractAtHeight = async (address: string, args: object, heigh
 }
 
 export const skipRPCs = (rpcs: Chain[]): Chain[] => {
-    const res = rpcs.filter(rpc => {
-        for (const skipRPC of SKIP_RPC_ADDRESSES) {
-            if (skipRPC === rpc.address) {
-                return false
-            } else return true
-        }
-    })
+    let res = []
+    for (let i = 0; i < rpcs.length; i++) {
+        const rpc = rpcs[i]
+        console.log('aloha ffs', rpc)
+        if (!SKIP_RPC_ADDRESSES.includes(rpc.address)) res.push(rpc)
+    }
     return res
 }
 
