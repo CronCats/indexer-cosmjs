@@ -197,7 +197,6 @@ export const skipRPCs = (rpcs: Chain[]): Chain[] => {
     let res = []
     for (let i = 0; i < rpcs.length; i++) {
         const rpc = rpcs[i]
-        console.log('aloha ffs', rpc)
         if (!SKIP_RPC_ADDRESSES.includes(rpc.address)) res.push(rpc)
     }
     return res
