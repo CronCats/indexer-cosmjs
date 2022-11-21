@@ -2,13 +2,13 @@ import {db} from "./variables";
 import {getTxInfo, v} from "./utils";
 
 export const addTxDetail = async () => {
-    const rowsNeedingUpdate = await db('transactions').select('hash', 'id').where('is_complete', false).limit(6)
+    const rowsNeedingUpdate = await db('js_transactions').select('hash', 'id').where('is_complete', false).limit(6)
     v('Transaction rows needing updating', rowsNeedingUpdate)
     for (const { id, hash } of rowsNeedingUpdate) {
         let txAncillaryInfo
         try {
             txAncillaryInfo = await getTxInfo(hash)
-            await db('transactions').where('id', id)
+            await db('js_transactions').where('id', id)
                 .update({
                     code: txAncillaryInfo.result.code,
                     log: txAncillaryInfo.result.log,

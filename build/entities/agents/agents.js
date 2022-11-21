@@ -6,10 +6,10 @@ const variables_1 = require("../../variables");
 const utils_1 = require("../../utils");
 const agentDetails_1 = require("./agentDetails");
 const saveAgentDetails = async () => {
-    const neededBlocks = await (0, variables_1.db)('agents').select('blocks.height', 'contract_block_piv.id')
-        .rightJoin('contract_block_piv', 'contract_block_piv.id', 'agents.fk_cb_id')
-        .innerJoin('blocks', 'contract_block_piv.fk_block_id', 'blocks.id')
-        .whereNull('agents.id');
+    const neededBlocks = await (0, variables_1.db)('js_agents').select('js_blocks.height', 'js_contract_block_piv.id')
+        .rightJoin('js_contract_block_piv', 'js_contract_block_piv.id', 'js_agents.fk_cb_id')
+        .innerJoin('js_blocks', 'js_contract_block_piv.fk_block_id', 'js_blocks.id')
+        .whereNull('js_agents.id');
     (0, utils_1.v)('neededBlocks (agents)', neededBlocks);
     let promises = [];
     const queryAgentIdsReadableMsg = {
@@ -22,7 +22,7 @@ const saveAgentDetails = async () => {
         const agentsJson = await (0, utils_1.queryContractAtHeight)(managerAddress, queryAgentIdsReadableMsg, blockHeight);
         (0, utils_1.v)('agentsJson', agentsJson);
         agentsJson.active.map(async (activeAgent) => {
-            const activeId = await (0, variables_1.db)('agents')
+            const activeId = await (0, variables_1.db)('js_agents')
                 .insert({
                 fk_cb_id: contractBlockIdFk,
                 address: activeAgent,
@@ -36,7 +36,7 @@ const saveAgentDetails = async () => {
             promises.push((0, agentDetails_1.saveAgentInfo)(activeAgent, activeId[0].id, blockInfo));
         });
         agentsJson.pending.map(async (pendingAgent) => {
-            const pendingId = await (0, variables_1.db)('agents')
+            const pendingId = await (0, variables_1.db)('js_agents')
                 .insert({
                 fk_cb_id: contractBlockIdFk,
                 address: pendingAgent,

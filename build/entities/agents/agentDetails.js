@@ -18,7 +18,7 @@ const saveAgentInfo = async (agentAddress, rowId, blockInfo) => {
     const agentInfo = await (0, utils_1.queryContractAtHeight)(managerAddress, queryGetAgentReadableMsg, blockHeight);
     (0, utils_1.v)('agent info', agentInfo);
     let promises = [];
-    promises.push((0, variables_1.db)('agents').update({
+    promises.push((0, variables_1.db)('js_agents').update({
         payable_account_id: agentInfo.payable_account_id,
         total_tasks_executed: agentInfo.total_tasks_executed,
         last_executed_slot: agentInfo.last_executed_slot,
@@ -28,7 +28,7 @@ const saveAgentInfo = async (agentAddress, rowId, blockInfo) => {
     // Add manager contract state to DB
     // 1/2 Native balances
     for (const nativeBalance of agentInfo.balance.native) {
-        promises.push((0, variables_1.db)('agent_balances').insert({
+        promises.push((0, variables_1.db)('js_agent_balances').insert({
             fk_agent_id: rowId,
             type: 'manager-state',
             denom: nativeBalance.denom,
@@ -37,7 +37,7 @@ const saveAgentInfo = async (agentAddress, rowId, blockInfo) => {
     }
     // 2/2 cw20's (as stored in state for the contract)
     for (const contractBalance of agentInfo.balance.cw20) {
-        promises.push((0, variables_1.db)('agent_balances').insert({
+        promises.push((0, variables_1.db)('js_agent_balances').insert({
             fk_agent_id: rowId,
             type: 'manager-state',
             address: contractBalance.address,
@@ -53,7 +53,7 @@ const saveAgentInfo = async (agentAddress, rowId, blockInfo) => {
     const protocolBalances = query_1.QueryAllBalancesResponse.decode(protocolBalancesEncoded);
     // We're assuming there is no pagination :/. come fix it friend?
     for (const balance of protocolBalances.balances) {
-        promises.push((0, variables_1.db)('agent_balances').insert({
+        promises.push((0, variables_1.db)('js_agent_balances').insert({
             fk_agent_id: rowId,
             type: 'protocol',
             denom: balance.denom,

@@ -19,7 +19,7 @@ export const saveAgentInfo = async (agentAddress, rowId, blockInfo) => {
 
     let promises = []
     promises.push(
-        db('agents').update({
+        db('js_agents').update({
             payable_account_id: agentInfo.payable_account_id,
             total_tasks_executed: agentInfo.total_tasks_executed,
             last_executed_slot: agentInfo.last_executed_slot,
@@ -32,7 +32,7 @@ export const saveAgentInfo = async (agentAddress, rowId, blockInfo) => {
     // 1/2 Native balances
     for (const nativeBalance of agentInfo.balance.native) {
         promises.push(
-            db('agent_balances').insert({
+            db('js_agent_balances').insert({
                 fk_agent_id: rowId,
                 type: 'manager-state',
                 denom: nativeBalance.denom,
@@ -43,7 +43,7 @@ export const saveAgentInfo = async (agentAddress, rowId, blockInfo) => {
     // 2/2 cw20's (as stored in state for the contract)
     for (const contractBalance of agentInfo.balance.cw20) {
         promises.push(
-            db('agent_balances').insert({
+            db('js_agent_balances').insert({
                 fk_agent_id: rowId,
                 type: 'manager-state',
                 address: contractBalance.address,
@@ -68,7 +68,7 @@ export const saveAgentInfo = async (agentAddress, rowId, blockInfo) => {
     // We're assuming there is no pagination :/. come fix it friend?
     for (const balance of protocolBalances.balances) {
         promises.push(
-            db('agent_balances').insert({
+            db('js_agent_balances').insert({
                 fk_agent_id: rowId,
                 type: 'protocol',
                 denom: balance.denom,

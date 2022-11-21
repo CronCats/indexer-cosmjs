@@ -38,11 +38,11 @@ const getDb = () => {
 };
 exports.getDb = getDb;
 const insertChainInfo = async ({ chainIdPrefix }) => {
-    let insertChainInfoRes = await (0, variables_1.db)('chain_network')
+    let insertChainInfoRes = await (0, variables_1.db)('js_chain_network')
         .select('id')
         .where('chain_id_prefix', chainIdPrefix);
     if (insertChainInfoRes.length === 0) {
-        insertChainInfoRes = await (0, variables_1.db)('chain_network').insert({ 'chain_id_prefix': chainIdPrefix }, 'id');
+        insertChainInfoRes = await (0, variables_1.db)('js_chain_network').insert({ 'chain_id_prefix': chainIdPrefix }, 'id');
     }
     return insertChainInfoRes[0].id;
 };

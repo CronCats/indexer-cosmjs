@@ -36,11 +36,11 @@ export const getDb = () => {
 }
 
 export const insertChainInfo = async ({chainIdPrefix}) => {
-    let insertChainInfoRes = await db('chain_network')
+    let insertChainInfoRes = await db('js_chain_network')
         .select('id')
         .where('chain_id_prefix', chainIdPrefix)
     if (insertChainInfoRes.length === 0) {
-        insertChainInfoRes = await db('chain_network').insert({'chain_id_prefix': chainIdPrefix}, 'id')
+        insertChainInfoRes = await db('js_chain_network').insert({'chain_id_prefix': chainIdPrefix}, 'id')
     }
     return insertChainInfoRes[0].id
 }

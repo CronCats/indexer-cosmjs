@@ -8,7 +8,7 @@ export const saveConfigBalances = async (configFkId, config) => {
     // Save available native balances
     for (const balance of config.available_balance.native) {
         promises.push(
-            db('config_balances').insert({
+            db('js_config_balances').insert({
                 fk_config_id: bigIntMe(configFkId),
                 type: 'native',
                 denom: balance.denom,
@@ -19,7 +19,7 @@ export const saveConfigBalances = async (configFkId, config) => {
     // Save available cw20 balances
     for (const balance of config.available_balance.cw20) {
         promises.push(
-            db('config_balances').insert({
+            db('js_config_balances').insert({
                 fk_config_id: bigIntMe(configFkId),
                 type: 'cw20',
                 address: balance.address,
@@ -31,7 +31,7 @@ export const saveConfigBalances = async (configFkId, config) => {
     // dude I'm so lazy
     for (const balance of config.staked_balance.native) {
         promises.push(
-            db('config_balances').insert({
+            db('js_config_balances').insert({
                 fk_config_id: bigIntMe(configFkId),
                 type: 'native',
                 denom: balance.denom,
@@ -43,7 +43,7 @@ export const saveConfigBalances = async (configFkId, config) => {
     // lazy but readable amiright
     for (const balance of config.staked_balance.cw20) {
         promises.push(
-            db('config_balances').insert({
+            db('js_config_balances').insert({
                 fk_config_id: bigIntMe(configFkId),
                 type: 'cw20',
                 address: balance.address,
