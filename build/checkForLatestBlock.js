@@ -83,7 +83,7 @@ const handleBlockTxs = async (height, blockTxs, isoBlockTime) => {
         }
     });
     if (wasmExecTxs.length !== 0) {
-        console.log('Found transaction(s) interacting with a contract on this block…');
+        console.log('Found transaction(s) interacting with our contract(s) on this block…');
         await (0, utils_1.addSeenHeight)(height);
         // Go on to save the block information
         const blockDetail = {

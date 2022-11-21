@@ -201,15 +201,15 @@ const queryContractAtHeight = async (address, args, height) => {
 };
 exports.queryContractAtHeight = queryContractAtHeight;
 const skipRPCs = (rpcs) => {
-    const res = rpcs.filter(rpc => {
-        for (const skipRPC of variables_1.SKIP_RPC_ADDRESSES) {
-            if (skipRPC === rpc.address) {
-                return false;
-            }
-            else
-                return true;
-        }
-    });
+    let res = [];
+    for (let i = 0; i < rpcs.length; i++) {
+        const rpc = rpcs[i];
+        console.log('aloha ffs', rpc);
+        if (!variables_1.SKIP_RPC_ADDRESSES.includes(rpc.address))
+            res.push(rpc);
+    }
+    // console.log('aloha rpcs after skipping', rpcs)
+    console.log('aloha rpcs after skipping RES', res);
     return res;
 };
 exports.skipRPCs = skipRPCs;
