@@ -11,6 +11,7 @@ import {
 import {addRPCs, checkForMissedBlocks, setRPCClients, shuffleRPCs, skipRPCs} from "./utils"
 import fetch from 'node-fetch'
 import {Chain} from "./interfaces"
+import { addContractId } from "./addContractId"
 
 // This downloads the latest version from chain-registry 😐
 const getCurrentRPCs = async () => {
@@ -46,6 +47,9 @@ const setup = async () => {
 
   // Check for gaps in blocks
   setInterval(() => checkForMissedBlocks(), TIMEOUT * 2)
+
+  // Check for fk_contract_id in messages
+  setInterval(() => addContractId(), TIMEOUT * 2)
 
   // This setTimeout schedules the next call at the end of the current one.
   // "Call checkRowsToUpdate, let it finish, then wait the timeout amount before calling it again."

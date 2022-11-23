@@ -9,6 +9,7 @@ const addTxDetail_1 = require("./addTxDetail");
 const variables_1 = require("./variables");
 const utils_1 = require("./utils");
 const node_fetch_1 = __importDefault(require("node-fetch"));
+const addContractId_1 = require("./addContractId");
 // This downloads the latest version from chain-registry 😐
 const getCurrentRPCs = async () => {
     let rpcs = [];
@@ -40,6 +41,8 @@ const setup = async () => {
     setInterval(() => (0, addTxDetail_1.addTxDetail)(), variables_1.TIMEOUT * 2);
     // Check for gaps in blocks
     setInterval(() => (0, utils_1.checkForMissedBlocks)(), variables_1.TIMEOUT * 2);
+    // Check for fk_contract_id in messages
+    setInterval(() => (0, addContractId_1.addContractId)(), variables_1.TIMEOUT * 2);
     // This setTimeout schedules the next call at the end of the current one.
     // "Call checkRowsToUpdate, let it finish, then wait the timeout amount before calling it again."
     (0, variables_1.updateStateTimerId)(setTimeout(checkRowsToUpdate_1.checkRowsToUpdate, variables_1.TIMEOUT * 2));
