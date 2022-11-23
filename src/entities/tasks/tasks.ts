@@ -4,10 +4,10 @@ import {db, settings} from "../../variables";
 import {queryContractAtHeight, v} from "../../utils";
 
 export const saveTaskDetails = async () => {
-    const neededBlocks = await db('tasks').select('blocks.height', 'contract_block_piv.id')
-        .rightJoin('contract_block_piv', 'contract_block_piv.id', 'tasks.fk_cb_id')
-        .innerJoin('blocks', 'contract_block_piv.fk_block_id', 'blocks.id')
-        .whereNull('tasks.id')
+    const neededBlocks = await db('js_tasks').select('js_blocks.height', 'js_contract_block_piv.id')
+        .rightJoin('js_contract_block_piv', 'js_contract_block_piv.id', 'js_tasks.fk_cb_id')
+        .innerJoin('js_blocks', 'js_contract_block_piv.fk_block_id', 'js_blocks.id')
+        .whereNull('js_tasks.id')
     v('neededBlocks (tasks)', neededBlocks)
     let promises = []
     const getTasksMsg = {
@@ -72,7 +72,7 @@ const saveTask = async (task, contractBlockIdFk) => {
                 console.warn('Unexpected boundary variant for task', task)
         }
     }
-    const taskRes = await db('tasks').insert(taskToInsert, 'id')
+    const taskRes = await db('js_tasks').insert(taskToInsert, 'id')
     const taskFkId = taskRes[0].id
     // console.log('taskFkId', taskRes)
 
@@ -80,7 +80,7 @@ const saveTask = async (task, contractBlockIdFk) => {
     // Native tokens (amount_for_one_task_native)
     for (const amountForOneNative of task.amount_for_one_task_native) {
         promises.push(
-            db('task_amount_per').insert({
+            db('js_task_amount_per').insert({
                 fk_task_id: taskFkId,
                 type: 'native',
                 denom: amountForOneNative.denom,
@@ -91,7 +91,7 @@ const saveTask = async (task, contractBlockIdFk) => {
     // cw20 tokens (amount_for_one_task_cw20)
     for (const amountForOneCw20 of task.amount_for_one_task_cw20) {
         promises.push(
-            db('task_amount_per').insert({
+            db('js_task_amount_per').insert({
                 fk_task_id: taskFkId,
                 type: 'cw20',
                 address: amountForOneCw20.address,
@@ -104,7 +104,7 @@ const saveTask = async (task, contractBlockIdFk) => {
     // but the database table task_deposits will be able to have other types
     for (const totalDepositNative of task.total_deposit) {
         promises.push(
-            db('task_deposits').insert({
+            db('js_task_deposits').insert({
                 fk_task_id: taskFkId,
                 type: 'native',
                 denom: totalDepositNative.denom,
@@ -115,7 +115,7 @@ const saveTask = async (task, contractBlockIdFk) => {
     // Task actions (actions)
     for (const action of task.actions) {
         promises.push(
-            db('task_actions').insert({
+            db('js_task_actions').insert({
                 fk_task_id: taskFkId,
                 msg: action.msg,
                 gas_limit: action.gas_limit
@@ -126,7 +126,7 @@ const saveTask = async (task, contractBlockIdFk) => {
     for (const rule of task.rules) {
         const ruleVariant = Object.keys(rule.msg)[0]
         promises.push(
-            db('task_rules').insert({
+            db('js_task_rules').insert({
                 fk_task_id: taskFkId,
                 rule_variant: ruleVariant,
                 data: task[ruleVariant]
@@ -137,7 +137,7 @@ const saveTask = async (task, contractBlockIdFk) => {
     // NOTE: at the time of this writing, it seems we're only tracking native tokens
     for (const fundsWithdrawnNative of task.funds_withdrawn_recurring) {
         promises.push(
-            db('task_deposits').insert({
+            db('js_task_deposits').insert({
                 fk_task_id: taskFkId,
                 type: 'native',
                 denom: fundsWithdrawnNative.denom,

@@ -5,10 +5,10 @@ exports.saveTaskDetails = void 0;
 const variables_1 = require("../../variables");
 const utils_1 = require("../../utils");
 const saveTaskDetails = async () => {
-    const neededBlocks = await (0, variables_1.db)('tasks').select('blocks.height', 'contract_block_piv.id')
-        .rightJoin('contract_block_piv', 'contract_block_piv.id', 'tasks.fk_cb_id')
-        .innerJoin('blocks', 'contract_block_piv.fk_block_id', 'blocks.id')
-        .whereNull('tasks.id');
+    const neededBlocks = await (0, variables_1.db)('js_tasks').select('js_blocks.height', 'js_contract_block_piv.id')
+        .rightJoin('js_contract_block_piv', 'js_contract_block_piv.id', 'js_tasks.fk_cb_id')
+        .innerJoin('js_blocks', 'js_contract_block_piv.fk_block_id', 'js_blocks.id')
+        .whereNull('js_tasks.id');
     (0, utils_1.v)('neededBlocks (tasks)', neededBlocks);
     let promises = [];
     const getTasksMsg = {
@@ -72,13 +72,13 @@ const saveTask = async (task, contractBlockIdFk) => {
                 console.warn('Unexpected boundary variant for task', task);
         }
     }
-    const taskRes = await (0, variables_1.db)('tasks').insert(taskToInsert, 'id');
+    const taskRes = await (0, variables_1.db)('js_tasks').insert(taskToInsert, 'id');
     const taskFkId = taskRes[0].id;
     // console.log('taskFkId', taskRes)
     let promises = [];
     // Native tokens (amount_for_one_task_native)
     for (const amountForOneNative of task.amount_for_one_task_native) {
-        promises.push((0, variables_1.db)('task_amount_per').insert({
+        promises.push((0, variables_1.db)('js_task_amount_per').insert({
             fk_task_id: taskFkId,
             type: 'native',
             denom: amountForOneNative.denom,
@@ -87,7 +87,7 @@ const saveTask = async (task, contractBlockIdFk) => {
     }
     // cw20 tokens (amount_for_one_task_cw20)
     for (const amountForOneCw20 of task.amount_for_one_task_cw20) {
-        promises.push((0, variables_1.db)('task_amount_per').insert({
+        promises.push((0, variables_1.db)('js_task_amount_per').insert({
             fk_task_id: taskFkId,
             type: 'cw20',
             address: amountForOneCw20.address,
@@ -98,7 +98,7 @@ const saveTask = async (task, contractBlockIdFk) => {
     // NOTE: at the time of this writing, it seems like we're just covering native token
     // but the database table task_deposits will be able to have other types
     for (const totalDepositNative of task.total_deposit) {
-        promises.push((0, variables_1.db)('task_deposits').insert({
+        promises.push((0, variables_1.db)('js_task_deposits').insert({
             fk_task_id: taskFkId,
             type: 'native',
             denom: totalDepositNative.denom,
@@ -107,7 +107,7 @@ const saveTask = async (task, contractBlockIdFk) => {
     }
     // Task actions (actions)
     for (const action of task.actions) {
-        promises.push((0, variables_1.db)('task_actions').insert({
+        promises.push((0, variables_1.db)('js_task_actions').insert({
             fk_task_id: taskFkId,
             msg: action.msg,
             gas_limit: action.gas_limit
@@ -116,7 +116,7 @@ const saveTask = async (task, contractBlockIdFk) => {
     // Task rules (actions)
     for (const rule of task.rules) {
         const ruleVariant = Object.keys(rule.msg)[0];
-        promises.push((0, variables_1.db)('task_rules').insert({
+        promises.push((0, variables_1.db)('js_task_rules').insert({
             fk_task_id: taskFkId,
             rule_variant: ruleVariant,
             data: task[ruleVariant]
@@ -125,7 +125,7 @@ const saveTask = async (task, contractBlockIdFk) => {
     // Task funds withdrawn (funds_withdrawn_recurring)
     // NOTE: at the time of this writing, it seems we're only tracking native tokens
     for (const fundsWithdrawnNative of task.funds_withdrawn_recurring) {
-        promises.push((0, variables_1.db)('task_deposits').insert({
+        promises.push((0, variables_1.db)('js_task_deposits').insert({
             fk_task_id: taskFkId,
             type: 'native',
             denom: fundsWithdrawnNative.denom,

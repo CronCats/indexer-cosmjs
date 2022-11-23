@@ -5,10 +5,10 @@ import {queryContractAtHeight, v} from "../../utils";
 import {saveConfigBalances} from "./configBalances";
 
 export const saveConfigDetails = async () => {
-    const neededBlocks = await db('config').select('blocks.height', 'contract_block_piv.id')
-        .rightJoin('contract_block_piv', 'contract_block_piv.id', 'config.fk_cb_id')
-        .innerJoin('blocks', 'contract_block_piv.fk_block_id', 'blocks.id')
-        .whereNull('config.id')
+    const neededBlocks = await db('js_config').select('js_blocks.height', 'js_contract_block_piv.id')
+        .rightJoin('js_contract_block_piv', 'js_contract_block_piv.id', 'js_config.fk_cb_id')
+        .innerJoin('js_blocks', 'js_contract_block_piv.fk_block_id', 'js_blocks.id')
+        .whereNull('js_config.id')
     v('neededBlocks (config)', neededBlocks)
     let promises = []
     const getConfigMsg = {
@@ -30,7 +30,7 @@ const saveConfig = async (contractAddress, getConfigMsg, blockHeight, contractBl
     const config = await queryContractAtHeight(contractAddress, getConfigMsg, blockHeight)
     v('config', config)
     // Insert row into config
-    const configFkId = await db('config').insert({
+    const configFkId = await db('js_config').insert({
         fk_cb_id: contractBlockIdFk,
         paused: config.paused,
         owner_id: config.owner_id,

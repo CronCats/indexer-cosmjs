@@ -131,7 +131,7 @@ const saveBlock = async (blockDetail, chainNetworkFkId) => {
     // I suppose this can happen if the RPC returns way later when a block has already been caught
     // and handled as a missing block
     try {
-        blockEntry = await db('blocks')
+        blockEntry = await db('js_blocks')
             .insert({
                 height,
                 time,
@@ -139,7 +139,7 @@ const saveBlock = async (blockDetail, chainNetworkFkId) => {
             }, 'id')
         const blockIdFk = blockEntry[0].id
         for (const tx of blockDetail.txs) {
-            txEntry = await db('transactions')
+            txEntry = await db('js_transactions')
                 .insert({
                     fk_block_id: blockIdFk,
                     hash: tx.hash,
@@ -148,7 +148,7 @@ const saveBlock = async (blockDetail, chainNetworkFkId) => {
             for (const msg of tx.msgs) {
                 const fnKey = Object.keys(msg.msg)[0]
                 // Insert each message inside the transaction
-                await db('messages')
+                await db('js_messages')
                     .insert({
                         fk_tx_id: txEntry[0].id,
                         sender: msg.sender,
@@ -158,14 +158,14 @@ const saveBlock = async (blockDetail, chainNetworkFkId) => {
                     })
                 // Insert contract if it's not in the database yet
                 // TODO: There's likely a better way at https://knexjs.org/guide but this will work
-                let contractResp = await db('contracts')
+                let contractResp = await db('js_contracts')
                     .where({
                         fk_chain_network_id: chainNetworkFkId,
                         address: msg.contract
                     })
                     .select('id')
                 if (contractResp.length === 0) {
-                    contractResp = await db('contracts')
+                    contractResp = await db('js_contracts')
                     .insert({
                         fk_chain_network_id: chainNetworkFkId,
                         address: msg.contract
@@ -183,7 +183,7 @@ const saveBlock = async (blockDetail, chainNetworkFkId) => {
             const contractFkId = contractDBInfo[1] // 6
             const contractInfoResp: QueryContractInfoResponse = await getContractInfo(contractAddress);
             const codeId = bigIntMe(contractInfoResp.contractInfo.codeId)
-            await db('contract_block_piv')
+            await db('js_contract_block_piv')
                 .insert({
                     fk_contract_id: contractFkId,
                     fk_block_id: blockIdFk,
