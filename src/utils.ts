@@ -6,10 +6,10 @@ import {
     allRPCConnections,
     blockHeights,
     RPC_LIMIT,
-    setAllRPCConnections, SKIP_RPC_ADDRESSES,
+    setAllRPCConnections, SKIP_RPC_ADDRESSES, TIMEOUT,
     updateBlockHeights, VERBOSITY
 } from "./variables";
-import {BlockResponse, Tendermint34Client, TxResponse} from "@cosmjs/tendermint-rpc";
+import {BlockResponse, HttpBatchClient, Tendermint34Client, TxResponse} from "@cosmjs/tendermint-rpc";
 import {QueryClient} from "@cosmjs/stargate";
 import {
     QueryContractInfoResponse,
@@ -127,7 +127,11 @@ export const setRPCClients = async (chains: Chain[]) => {
     for (let i = 0; i < chains.length; i++) {
         const address = chains[i].address
         try {
-            const client: any = await Tendermint34Client.connect(address)
+            const httpBatchClient = new HttpBatchClient(address, {
+                batchSizeLimit: 5,
+                dispatchInterval: TIMEOUT
+            })
+            const client: any = await Tendermint34Client.create(httpBatchClient)
             const queryClient = QueryClient.withExtensions(client, setupWasmExtension)
             let rpcConnection: RpcConnection = {
                 client,

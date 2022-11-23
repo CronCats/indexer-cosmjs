@@ -135,7 +135,11 @@ const setRPCClients = async (chains) => {
     for (let i = 0; i < chains.length; i++) {
         const address = chains[i].address;
         try {
-            const client = await tendermint_rpc_1.Tendermint34Client.connect(address);
+            const httpBatchClient = new tendermint_rpc_1.HttpBatchClient(address, {
+                batchSizeLimit: 5,
+                dispatchInterval: variables_1.TIMEOUT
+            });
+            const client = await tendermint_rpc_1.Tendermint34Client.create(httpBatchClient);
             const queryClient = stargate_1.QueryClient.withExtensions(client, cosmwasm_stargate_1.setupWasmExtension);
             let rpcConnection = {
                 client,
@@ -204,12 +208,9 @@ const skipRPCs = (rpcs) => {
     let res = [];
     for (let i = 0; i < rpcs.length; i++) {
         const rpc = rpcs[i];
-        console.log('aloha ffs', rpc);
         if (!variables_1.SKIP_RPC_ADDRESSES.includes(rpc.address))
             res.push(rpc);
     }
-    // console.log('aloha rpcs after skipping', rpcs)
-    console.log('aloha rpcs after skipping RES', res);
     return res;
 };
 exports.skipRPCs = skipRPCs;
