@@ -35,9 +35,6 @@ export const checkForLatestBlock = async () => {
         // Nothing to see, move along, solider
         return
     }
-    if (lastHeight !== 0 && currentHeight - lastHeight !== 1) {
-        await checkForMissedBlocks()
-    }
     // Logic for new block that came in
     updateLastHeight(currentHeight)
     console.log('New block height:', currentHeight)

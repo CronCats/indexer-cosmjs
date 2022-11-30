@@ -51,8 +51,11 @@ export const saveAgentInfo = async (agentAddress, rowId, blockInfo) => {
             })
         )
     }
-
-    await Promise.all(promises)
+    try {
+        await Promise.all(promises)
+    }  catch (e) {
+        console.error('Error doing agent object insertions', e)
+    }
     // Reset promises
     promises = []
 
@@ -76,5 +79,9 @@ export const saveAgentInfo = async (agentAddress, rowId, blockInfo) => {
             })
         )
     }
-    await Promise.all(promises)
+    try {
+        await Promise.all(promises)
+    } catch (e) {
+        console.error('Error doing agent balance insertions', e)
+    }
 }

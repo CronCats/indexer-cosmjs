@@ -44,7 +44,12 @@ const saveAgentInfo = async (agentAddress, rowId, blockInfo) => {
             amount: contractBalance.amount
         }));
     }
-    await Promise.all(promises);
+    try {
+        await Promise.all(promises);
+    }
+    catch (e) {
+        console.error('Error doing agent object insertions', e);
+    }
     // Reset promises
     promises = [];
     // Get token balances from protocol at a given height
@@ -60,6 +65,11 @@ const saveAgentInfo = async (agentAddress, rowId, blockInfo) => {
             amount: balance.amount
         }));
     }
-    await Promise.all(promises);
+    try {
+        await Promise.all(promises);
+    }
+    catch (e) {
+        console.error('Error doing agent balance insertions', e);
+    }
 };
 exports.saveAgentInfo = saveAgentInfo;

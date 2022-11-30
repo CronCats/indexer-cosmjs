@@ -21,6 +21,11 @@ export const saveTaskDetails = async () => {
         const contractBlockIdFk = blockInfo.id
         promises.push(saveTasks(managerAddress, getTasksMsg, blockHeight, contractBlockIdFk))
     }
+    try {
+        await Promise.all(promises)
+    } catch (e) {
+        console.error('Error querying/inserting tasks', e)
+    }
 }
 
 const saveTasks = async (contractAddress, getTasksMsg, blockHeight, contractBlockIdFk) => {
@@ -29,7 +34,6 @@ const saveTasks = async (contractAddress, getTasksMsg, blockHeight, contractBloc
     for (const task of tasks) {
         promises.push(saveTask(task, contractBlockIdFk))
     }
-
     await Promise.all(promises)
 }
 
@@ -123,28 +127,17 @@ const saveTask = async (task, contractBlockIdFk) => {
         )
     }
     // Task rules (actions)
-    for (const rule of task.rules) {
-        const ruleVariant = Object.keys(rule.msg)[0]
-        promises.push(
-            db('js_task_rules').insert({
-                fk_task_id: taskFkId,
-                rule_variant: ruleVariant,
-                data: task[ruleVariant]
-            })
-        )
+    if (task.rules && Array.isArray(task.rules)) {
+        for (const rule of task.rules) {
+            const ruleVariant = Object.keys(rule.msg)[0]
+            promises.push(
+                db('js_task_rules').insert({
+                    fk_task_id: taskFkId,
+                    rule_variant: ruleVariant,
+                    data: task[ruleVariant]
+                })
+            )
+        }
     }
-    // Task funds withdrawn (funds_withdrawn_recurring)
-    // NOTE: at the time of this writing, it seems we're only tracking native tokens
-    for (const fundsWithdrawnNative of task.funds_withdrawn_recurring) {
-        promises.push(
-            db('js_task_deposits').insert({
-                fk_task_id: taskFkId,
-                type: 'native',
-                denom: fundsWithdrawnNative.denom,
-                amount: fundsWithdrawnNative.amount
-            })
-        )
-    }
-
     await Promise.all(promises)
 }
