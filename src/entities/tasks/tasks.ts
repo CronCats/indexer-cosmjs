@@ -3,7 +3,7 @@
 import {db, settings} from "../../variables";
 import {queryContractAtHeight, v} from "../../utils";
 
-export const saveTaskDetails = async () => {
+export const saveTaskDetails = async (managerAddress: string) => {
     const neededBlocks = await db('js_tasks').select('js_blocks.height', 'js_contract_block_piv.id')
         .rightJoin('js_contract_block_piv', 'js_contract_block_piv.id', 'js_tasks.fk_cb_id')
         .innerJoin('js_blocks', 'js_contract_block_piv.fk_block_id', 'js_blocks.id')
@@ -15,7 +15,6 @@ export const saveTaskDetails = async () => {
             // TODO: I'm totally leaving no params because I'm horrible. There is pagination to do here.
         }
     }
-    const managerAddress = settings.contracts.manager.address
     for (const blockInfo of neededBlocks) {
         const blockHeight = Number.parseInt(blockInfo.height)
         const contractBlockIdFk = blockInfo.id

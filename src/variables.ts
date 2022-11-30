@@ -30,7 +30,13 @@ export const ADD_RPC_ADDRESSES_ALWAYS = JSON.parse(process.env.ADD_RPC_ADDRESSES
 
 export let settings = JSON.parse(process.env.SETTINGS)
 console.log('settings', settings)
-export const contractAddresses = Object.keys(settings.contracts).map(c => settings.contracts[c].address)
+export const contractAddresses: Set<string> = new Set()
+const contractCategories = Object.keys(settings.contracts)
+for (const category of contractCategories) {
+    for (const contract of settings.contracts[category]) {
+        contractAddresses.add(contract.address)
+    }
+}
 console.log('Looking for smart contract calls to these addresses', contractAddresses)
 
 // These are the in-memory cache basically, with a limit

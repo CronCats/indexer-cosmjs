@@ -4,7 +4,7 @@ import {db, settings} from "../../variables";
 import {queryContractAtHeight, v} from "../../utils";
 import {saveConfigBalances} from "./configBalances";
 
-export const saveConfigDetails = async () => {
+export const saveConfigDetails = async (managerAddress: string) => {
     const neededBlocks = await db('js_config').select('js_blocks.height', 'js_contract_block_piv.id')
         .rightJoin('js_contract_block_piv', 'js_contract_block_piv.id', 'js_config.fk_cb_id')
         .innerJoin('js_blocks', 'js_contract_block_piv.fk_block_id', 'js_blocks.id')
@@ -15,7 +15,6 @@ export const saveConfigDetails = async () => {
         // get_config function takes no parameters, hence {} being an empty object where you'd normally put params
         get_config: {}
     }
-    const managerAddress = settings.contracts.manager.address
     for (const blockInfo of neededBlocks) {
         const blockHeight = Number.parseInt(blockInfo.height)
         const contractBlockIdFk = blockInfo.id

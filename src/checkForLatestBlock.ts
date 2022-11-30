@@ -83,7 +83,7 @@ export const handleBlockTxs = async (height: number, blockTxs, isoBlockTime: str
                 let msg = MsgExecuteContract.decode(m.value)
                 v('msg', msg)
                 // Check if this is among the contracts we care about
-                if (!contractAddresses.includes(msg.contract)) {
+                if (!contractAddresses.has(msg.contract)) {
                     // console.log(`Called a contract ${msg.contract} but it's not one of ours`)
                 } else {
                     const innerMsg = JSON.parse(Buffer.from(msg.msg).toString())
