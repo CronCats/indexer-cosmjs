@@ -22,15 +22,28 @@ const saveTaskDetails = async () => {
         const contractBlockIdFk = blockInfo.id;
         promises.push(saveTasks(managerAddress, getTasksMsg, blockHeight, contractBlockIdFk));
     }
+    try {
+        await Promise.all(promises);
+    }
+    catch (e) {
+        console.error('fuck me running6', e);
+    }
 };
 exports.saveTaskDetails = saveTaskDetails;
 const saveTasks = async (contractAddress, getTasksMsg, blockHeight, contractBlockIdFk) => {
+    console.log('aloha10');
     const tasks = await (0, utils_1.queryContractAtHeight)(contractAddress, getTasksMsg, blockHeight);
     let promises = [];
     for (const task of tasks) {
         promises.push(saveTask(task, contractBlockIdFk));
     }
-    await Promise.all(promises);
+    console.log('aloha6');
+    try {
+        await Promise.all(promises);
+    }
+    catch (e) {
+        console.error('fuck me running7', e);
+    }
 };
 const saveTask = async (task, contractBlockIdFk) => {
     let intervalType;
@@ -72,7 +85,14 @@ const saveTask = async (task, contractBlockIdFk) => {
                 console.warn('Unexpected boundary variant for task', task);
         }
     }
-    const taskRes = await (0, variables_1.db)('js_tasks').insert(taskToInsert, 'id');
+    console.log('aloha8');
+    let taskRes;
+    try {
+        taskRes = await (0, variables_1.db)('js_tasks').insert(taskToInsert, 'id');
+    }
+    catch (e) {
+        console.error('aloha taskRes error', e, taskToInsert);
+    }
     const taskFkId = taskRes[0].id;
     // console.log('taskFkId', taskRes)
     let promises = [];
@@ -132,5 +152,11 @@ const saveTask = async (task, contractBlockIdFk) => {
             amount: fundsWithdrawnNative.amount
         }));
     }
-    await Promise.all(promises);
+    console.log('aloha7');
+    try {
+        await Promise.all(promises);
+    }
+    catch (e) {
+        console.error('fuck me running8', e);
+    }
 };

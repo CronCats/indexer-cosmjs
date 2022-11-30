@@ -22,7 +22,12 @@ const saveConfigDetails = async () => {
         const contractBlockIdFk = blockInfo.id;
         promises.push(saveConfig(managerAddress, getConfigMsg, blockHeight, contractBlockIdFk));
     }
-    await Promise.all(promises);
+    try {
+        await Promise.all(promises);
+    }
+    catch (e) {
+        console.error('Error querying/inserting config', e);
+    }
 };
 exports.saveConfigDetails = saveConfigDetails;
 const saveConfig = async (contractAddress, getConfigMsg, blockHeight, contractBlockIdFk) => {

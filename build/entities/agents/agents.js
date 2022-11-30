@@ -45,6 +45,11 @@ const saveAgentDetails = async () => {
             promises.push((0, agentDetails_1.saveAgentInfo)(pendingAgent, pendingId[0].id, blockInfo));
         });
     }
-    await Promise.all(promises);
+    try {
+        await Promise.all(promises);
+    }
+    catch (e) {
+        console.error('Error doing initial agent insertions', e);
+    }
 };
 exports.saveAgentDetails = saveAgentDetails;

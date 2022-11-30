@@ -46,6 +46,11 @@ const saveConfigBalances = async (configFkId, config) => {
         }));
     }
     // Do all the insertions
-    await Promise.all(promises);
+    try {
+        await Promise.all(promises);
+    }
+    catch (e) {
+        console.error('Error doing config balance insertions', e);
+    }
 };
 exports.saveConfigBalances = saveConfigBalances;
