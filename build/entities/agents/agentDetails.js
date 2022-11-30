@@ -6,7 +6,7 @@ exports.saveAgentInfo = void 0;
 const utils_1 = require("../../utils");
 const variables_1 = require("../../variables");
 const query_1 = require("cosmjs-types/cosmos/bank/v1beta1/query");
-const saveAgentInfo = async (agentAddress, rowId, blockInfo) => {
+const saveAgentInfo = async (agentAddress, rowId, blockInfo, managerAddress) => {
     const blockHeight = Number.parseInt(blockInfo.height);
     // Query the smart contract for agent details at a specific height
     const queryGetAgentReadableMsg = {
@@ -14,7 +14,6 @@ const saveAgentInfo = async (agentAddress, rowId, blockInfo) => {
             account_id: agentAddress // named params
         }
     };
-    const managerAddress = variables_1.settings.contracts.manager.address;
     const agentInfo = await (0, utils_1.queryContractAtHeight)(managerAddress, queryGetAgentReadableMsg, blockHeight);
     (0, utils_1.v)('agent info', agentInfo);
     let promises = [];

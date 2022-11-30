@@ -5,7 +5,7 @@ exports.saveConfigDetails = void 0;
 const variables_1 = require("../../variables");
 const utils_1 = require("../../utils");
 const configBalances_1 = require("./configBalances");
-const saveConfigDetails = async () => {
+const saveConfigDetails = async (managerAddress) => {
     const neededBlocks = await (0, variables_1.db)('js_config').select('js_blocks.height', 'js_contract_block_piv.id')
         .rightJoin('js_contract_block_piv', 'js_contract_block_piv.id', 'js_config.fk_cb_id')
         .innerJoin('js_blocks', 'js_contract_block_piv.fk_block_id', 'js_blocks.id')
@@ -16,7 +16,6 @@ const saveConfigDetails = async () => {
         // get_config function takes no parameters, hence {} being an empty object where you'd normally put params
         get_config: {}
     };
-    const managerAddress = variables_1.settings.contracts.manager.address;
     for (const blockInfo of neededBlocks) {
         const blockHeight = Number.parseInt(blockInfo.height);
         const contractBlockIdFk = blockInfo.id;

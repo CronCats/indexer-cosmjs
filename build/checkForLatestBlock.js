@@ -17,9 +17,6 @@ const checkForLatestBlock = async () => {
         // Nothing to see, move along, solider
         return;
     }
-    if (variables_1.lastHeight !== 0 && currentHeight - variables_1.lastHeight !== 1) {
-        await (0, utils_1.checkForMissedBlocks)();
-    }
     // Logic for new block that came in
     (0, variables_1.updateLastHeight)(currentHeight);
     console.log('New block height:', currentHeight);
@@ -65,7 +62,7 @@ const handleBlockTxs = async (height, blockTxs, isoBlockTime) => {
                 let msg = tx_1.MsgExecuteContract.decode(m.value);
                 (0, utils_1.v)('msg', msg);
                 // Check if this is among the contracts we care about
-                if (!variables_1.contractAddresses.includes(msg.contract)) {
+                if (!variables_1.contractAddresses.has(msg.contract)) {
                     // console.log(`Called a contract ${msg.contract} but it's not one of ours`)
                 }
                 else {

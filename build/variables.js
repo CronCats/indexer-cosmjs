@@ -29,7 +29,13 @@ exports.ADD_RPC_ADDRESSES = JSON.parse(process.env.ADD_RPC_ADDRESSES);
 exports.ADD_RPC_ADDRESSES_ALWAYS = JSON.parse(process.env.ADD_RPC_ADDRESSES_ALWAYS);
 exports.settings = JSON.parse(process.env.SETTINGS);
 console.log('settings', exports.settings);
-exports.contractAddresses = Object.keys(exports.settings.contracts).map(c => exports.settings.contracts[c].address);
+exports.contractAddresses = new Set();
+const contractCategories = Object.keys(exports.settings.contracts);
+for (const category of contractCategories) {
+    for (const contract of exports.settings.contracts[category]) {
+        exports.contractAddresses.add(contract.address);
+    }
+}
 console.log('Looking for smart contract calls to these addresses', exports.contractAddresses);
 // These are the in-memory cache basically, with a limit
 exports.blockHeights = [];
