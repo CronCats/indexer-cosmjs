@@ -127,27 +127,17 @@ const saveTask = async (task, contractBlockIdFk) => {
         )
     }
     // Task rules (actions)
-    for (const rule of task.rules) {
-        const ruleVariant = Object.keys(rule.msg)[0]
-        promises.push(
-            db('js_task_rules').insert({
-                fk_task_id: taskFkId,
-                rule_variant: ruleVariant,
-                data: task[ruleVariant]
-            })
-        )
-    }
-    // Task funds withdrawn (funds_withdrawn_recurring)
-    // NOTE: at the time of this writing, it seems we're only tracking native tokens
-    for (const fundsWithdrawnNative of task.funds_withdrawn_recurring) {
-        promises.push(
-            db('js_task_deposits').insert({
-                fk_task_id: taskFkId,
-                type: 'native',
-                denom: fundsWithdrawnNative.denom,
-                amount: fundsWithdrawnNative.amount
-            })
-        )
+    if (task.rules && Array.isArray(task.rules)) {
+        for (const rule of task.rules) {
+            const ruleVariant = Object.keys(rule.msg)[0]
+            promises.push(
+                db('js_task_rules').insert({
+                    fk_task_id: taskFkId,
+                    rule_variant: ruleVariant,
+                    data: task[ruleVariant]
+                })
+            )
+        }
     }
     await Promise.all(promises)
 }
