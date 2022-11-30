@@ -6,7 +6,6 @@ DROP TABLE IF EXISTS js_task_deposits CASCADE;
 DROP TABLE IF EXISTS js_task_amount_per CASCADE;
 DROP TABLE IF EXISTS js_task_rules CASCADE;
 DROP TABLE IF EXISTS js_task_actions CASCADE;
-DROP TABLE IF EXISTS js_task_funds_withdrawn CASCADE;
 DROP TABLE IF EXISTS js_tasks CASCADE;
 DROP TABLE IF EXISTS js_config_balances CASCADE;
 DROP TABLE IF EXISTS js_config CASCADE;
@@ -303,28 +302,6 @@ ALTER SEQUENCE task_actions_id_seq OWNED BY js_task_actions.id;
 ALTER TABLE ONLY js_task_actions ALTER COLUMN id SET DEFAULT nextval('task_actions_id_seq'::regclass);
 ALTER TABLE ONLY js_task_actions ADD CONSTRAINT fk_task FOREIGN KEY (fk_task_id) REFERENCES js_tasks(id);
 ALTER TABLE ONLY js_task_actions ADD CONSTRAINT task_actions_id_key UNIQUE (id);
-
---- Task's native funds withdrawn
-
-CREATE TABLE js_task_funds_withdrawn
-(
-    id         bigint                NOT NULL,
-    fk_task_id bigint                NOT NULL,
-    type       character varying(32) NOT NULL,
-    denom      character varying(32),
-    address    character varying(128),
-    amount     bigint                NOT NULL
-);
-CREATE SEQUENCE task_funds_withdrawn_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE CACHE 1;
-ALTER SEQUENCE task_funds_withdrawn_id_seq OWNED BY js_task_funds_withdrawn.id;
-ALTER TABLE ONLY js_task_funds_withdrawn ALTER COLUMN id SET DEFAULT nextval('task_funds_withdrawn_id_seq'::regclass);
-ALTER TABLE ONLY js_task_funds_withdrawn ADD CONSTRAINT fk_task FOREIGN KEY (fk_task_id) REFERENCES js_tasks(id);
-ALTER TABLE ONLY js_task_funds_withdrawn ADD CONSTRAINT task_funds_withdrawn_id_key UNIQUE (id);
 
 --- Config per contract
 
