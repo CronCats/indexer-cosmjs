@@ -21,6 +21,11 @@ export const saveTaskDetails = async () => {
         const contractBlockIdFk = blockInfo.id
         promises.push(saveTasks(managerAddress, getTasksMsg, blockHeight, contractBlockIdFk))
     }
+    try {
+        await Promise.all(promises)
+    } catch (e) {
+        console.error('Error querying/inserting tasks', e)
+    }
 }
 
 const saveTasks = async (contractAddress, getTasksMsg, blockHeight, contractBlockIdFk) => {
@@ -29,7 +34,6 @@ const saveTasks = async (contractAddress, getTasksMsg, blockHeight, contractBloc
     for (const task of tasks) {
         promises.push(saveTask(task, contractBlockIdFk))
     }
-
     await Promise.all(promises)
 }
 
@@ -145,6 +149,5 @@ const saveTask = async (task, contractBlockIdFk) => {
             })
         )
     }
-
     await Promise.all(promises)
 }
