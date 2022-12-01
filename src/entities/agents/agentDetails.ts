@@ -5,7 +5,7 @@ import {queryContractAtHeight, queryUnverified, v} from "../../utils";
 import {db, settings} from "../../variables";
 import {QueryAllBalancesRequest, QueryAllBalancesResponse} from "cosmjs-types/cosmos/bank/v1beta1/query";
 
-export const saveAgentInfo = async (agentAddress, rowId, blockInfo) => {
+export const saveAgentInfo = async (agentAddress, rowId, blockInfo, managerAddress) => {
     const blockHeight = Number.parseInt(blockInfo.height)
     // Query the smart contract for agent details at a specific height
     const queryGetAgentReadableMsg = {
@@ -13,7 +13,6 @@ export const saveAgentInfo = async (agentAddress, rowId, blockInfo) => {
             account_id: agentAddress // named params
         }
     }
-    const managerAddress = settings.contracts.manager.address
     const agentInfo = await queryContractAtHeight(managerAddress, queryGetAgentReadableMsg, blockHeight)
     v('agent info', agentInfo)
 

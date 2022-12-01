@@ -4,7 +4,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.saveTaskDetails = void 0;
 const variables_1 = require("../../variables");
 const utils_1 = require("../../utils");
-const saveTaskDetails = async () => {
+const saveTaskDetails = async (managerAddress) => {
     const neededBlocks = await (0, variables_1.db)('js_tasks').select('js_blocks.height', 'js_contract_block_piv.id')
         .rightJoin('js_contract_block_piv', 'js_contract_block_piv.id', 'js_tasks.fk_cb_id')
         .innerJoin('js_blocks', 'js_contract_block_piv.fk_block_id', 'js_blocks.id')
@@ -16,7 +16,6 @@ const saveTaskDetails = async () => {
         // TODO: I'm totally leaving no params because I'm horrible. There is pagination to do here.
         }
     };
-    const managerAddress = variables_1.settings.contracts.manager.address;
     for (const blockInfo of neededBlocks) {
         const blockHeight = Number.parseInt(blockInfo.height);
         const contractBlockIdFk = blockInfo.id;
@@ -26,24 +25,17 @@ const saveTaskDetails = async () => {
         await Promise.all(promises);
     }
     catch (e) {
-        console.error('fuck me running6', e);
+        console.error('Error querying/inserting tasks', e);
     }
 };
 exports.saveTaskDetails = saveTaskDetails;
 const saveTasks = async (contractAddress, getTasksMsg, blockHeight, contractBlockIdFk) => {
-    console.log('aloha10');
     const tasks = await (0, utils_1.queryContractAtHeight)(contractAddress, getTasksMsg, blockHeight);
     let promises = [];
     for (const task of tasks) {
         promises.push(saveTask(task, contractBlockIdFk));
     }
-    console.log('aloha6');
-    try {
-        await Promise.all(promises);
-    }
-    catch (e) {
-        console.error('fuck me running7', e);
-    }
+    await Promise.all(promises);
 };
 const saveTask = async (task, contractBlockIdFk) => {
     let intervalType;
@@ -85,14 +77,7 @@ const saveTask = async (task, contractBlockIdFk) => {
                 console.warn('Unexpected boundary variant for task', task);
         }
     }
-    console.log('aloha8');
-    let taskRes;
-    try {
-        taskRes = await (0, variables_1.db)('js_tasks').insert(taskToInsert, 'id');
-    }
-    catch (e) {
-        console.error('aloha taskRes error', e, taskToInsert);
-    }
+    const taskRes = await (0, variables_1.db)('js_tasks').insert(taskToInsert, 'id');
     const taskFkId = taskRes[0].id;
     // console.log('taskFkId', taskRes)
     let promises = [];
@@ -134,29 +119,15 @@ const saveTask = async (task, contractBlockIdFk) => {
         }));
     }
     // Task rules (actions)
-    for (const rule of task.rules) {
-        const ruleVariant = Object.keys(rule.msg)[0];
-        promises.push((0, variables_1.db)('js_task_rules').insert({
-            fk_task_id: taskFkId,
-            rule_variant: ruleVariant,
-            data: task[ruleVariant]
-        }));
+    if (task.rules && Array.isArray(task.rules)) {
+        for (const rule of task.rules) {
+            const ruleVariant = Object.keys(rule.msg)[0];
+            promises.push((0, variables_1.db)('js_task_rules').insert({
+                fk_task_id: taskFkId,
+                rule_variant: ruleVariant,
+                data: task[ruleVariant]
+            }));
+        }
     }
-    // Task funds withdrawn (funds_withdrawn_recurring)
-    // NOTE: at the time of this writing, it seems we're only tracking native tokens
-    for (const fundsWithdrawnNative of task.funds_withdrawn_recurring) {
-        promises.push((0, variables_1.db)('js_task_deposits').insert({
-            fk_task_id: taskFkId,
-            type: 'native',
-            denom: fundsWithdrawnNative.denom,
-            amount: fundsWithdrawnNative.amount
-        }));
-    }
-    console.log('aloha7');
-    try {
-        await Promise.all(promises);
-    }
-    catch (e) {
-        console.error('fuck me running8', e);
-    }
+    await Promise.all(promises);
 };

@@ -5,7 +5,7 @@ exports.saveAgentDetails = void 0;
 const variables_1 = require("../../variables");
 const utils_1 = require("../../utils");
 const agentDetails_1 = require("./agentDetails");
-const saveAgentDetails = async () => {
+const saveAgentDetails = async (managerAddress) => {
     const neededBlocks = await (0, variables_1.db)('js_agents').select('js_blocks.height', 'js_contract_block_piv.id')
         .rightJoin('js_contract_block_piv', 'js_contract_block_piv.id', 'js_agents.fk_cb_id')
         .innerJoin('js_blocks', 'js_contract_block_piv.fk_block_id', 'js_blocks.id')
@@ -18,7 +18,6 @@ const saveAgentDetails = async () => {
     for (const blockInfo of neededBlocks) {
         const contractBlockIdFk = blockInfo.id;
         const blockHeight = Number.parseInt(blockInfo.height);
-        const managerAddress = variables_1.settings.contracts.manager.address;
         const agentsJson = await (0, utils_1.queryContractAtHeight)(managerAddress, queryAgentIdsReadableMsg, blockHeight);
         (0, utils_1.v)('agentsJson', agentsJson);
         agentsJson.active.map(async (activeAgent) => {
@@ -33,7 +32,7 @@ const saveAgentDetails = async () => {
                 payable_account_id: agentsJson.payable_account_id
             }, 'id');
             // To get more detail on balances, we need to do a couple calls
-            promises.push((0, agentDetails_1.saveAgentInfo)(activeAgent, activeId[0].id, blockInfo));
+            promises.push((0, agentDetails_1.saveAgentInfo)(activeAgent, activeId[0].id, blockInfo, managerAddress));
         });
         agentsJson.pending.map(async (pendingAgent) => {
             const pendingId = await (0, variables_1.db)('js_agents')
@@ -42,7 +41,7 @@ const saveAgentDetails = async () => {
                 address: pendingAgent,
                 is_active: false,
             }, 'id');
-            promises.push((0, agentDetails_1.saveAgentInfo)(pendingAgent, pendingId[0].id, blockInfo));
+            promises.push((0, agentDetails_1.saveAgentInfo)(pendingAgent, pendingId[0].id, blockInfo, managerAddress));
         });
     }
     try {
