@@ -50,4 +50,9 @@ export const updateStateTimerId = (newTimer) => {
     getStateTimerId = newTimer
 }
 
+export let getBlocksTimerId
+export const updateBlocksTimerId = (newBlocksTimer) => {
+    getBlocksTimerId = newBlocksTimer
+}
+
 export const db = getDb()

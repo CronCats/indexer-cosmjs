@@ -37,7 +37,6 @@ export const checkForLatestBlock = async () => {
     }
     // Logic for new block that came in
     updateLastHeight(currentHeight)
-    console.log('New block height:', currentHeight)
     let block: BlockResponse
     try {
         block = await getBlockInfo(currentHeight)
@@ -99,6 +98,7 @@ export const handleBlockTxs = async (height: number, blockTxs, isoBlockTime: str
             wasmExecTxs.push(simpleTx)
         }
     })
+
     if (wasmExecTxs.length !== 0) {
         console.log('Found transaction(s) interacting with our contract(s) on this block…')
         await addSeenHeight(height)

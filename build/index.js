@@ -41,7 +41,7 @@ const setup = async () => {
     // Fill out extra transaction detail (gas used vs wanted, etc.)
     setInterval(() => (0, addTxDetail_1.addTxDetail)(), variables_1.TIMEOUT * 2);
     // Check for gaps in blocks
-    setInterval(() => (0, utils_1.checkForMissedBlocks)(), variables_1.TIMEOUT * 2);
+    (0, variables_1.updateBlocksTimerId)(setTimeout(utils_1.checkForMissedBlocks, variables_1.TIMEOUT * 2));
     // Check for fk_contract_id in messages
     setInterval(() => (0, addContractId_1.addContractId)(), variables_1.TIMEOUT * 2);
     // Check for synced blocks

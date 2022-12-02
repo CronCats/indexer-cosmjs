@@ -75,7 +75,6 @@ exports.v = v;
 // Half-finished work here
 // We're basically trying to keep track of all heights we're aware of
 const addSeenHeight = async (height) => {
-    console.log('aloha11');
     if (variables_1.blockHeights.length === 0) {
         variables_1.blockHeights.push(height);
     }
@@ -103,12 +102,12 @@ const addSeenHeight = async (height) => {
 };
 exports.addSeenHeight = addSeenHeight;
 const checkForMissedBlocks = async () => {
-    console.log('aloha12');
     let keepGoing = false;
     // We use length - 1 since we can't compare past that
     for (let i = 0; i < variables_1.blockHeights.length - 1; i++) {
         // Go until we see the first gap, keep it simple
-        if (variables_1.blockHeights[i] - variables_1.blockHeights[i + 1] !== 1) {
+        // blockHeights[i] can't be less or equal to blockHeights[i + 1]
+        if (variables_1.blockHeights[i] - variables_1.blockHeights[i + 1] > 1) {
             keepGoing = true;
             // Do stuff to add block
             const missingBlockNum = variables_1.blockHeights[i] - 1;
@@ -117,15 +116,14 @@ const checkForMissedBlocks = async () => {
             const blockTime = block.block.header.time;
             const isoBlockTime = new Date(blockTime.toISOString()).toISOString();
             (0, exports.v)('isoBlockTime', isoBlockTime);
-            console.log('Fixing missed block', missingBlockNum);
             await (0, checkForLatestBlock_1.handleBlockTxs)(missingBlockNum, blockTxs, isoBlockTime);
         }
     }
+    (0, variables_1.updateBlocksTimerId)(setTimeout(exports.checkForMissedBlocks, variables_1.TIMEOUT));
 };
 exports.checkForMissedBlocks = checkForMissedBlocks;
 // Credit to Fisher-Yates, SO and eventually https://www.webmound.com/shuffle-javascript-array
 const shuffleRPCs = (rpcs) => {
-    console.log('aloha13');
     rpcs.reverse().forEach((item, index) => {
         const j = Math.floor(Math.random() * (index + 1));
         [rpcs[index], rpcs[j]] = [rpcs[j], rpcs[index]];
@@ -134,17 +132,15 @@ const shuffleRPCs = (rpcs) => {
 };
 exports.shuffleRPCs = shuffleRPCs;
 const setRPCClients = async (chains) => {
-    console.log('aloha14');
     let newRPCs = [];
     for (let i = 0; i < chains.length; i++) {
         const address = chains[i].address;
         try {
-            // const httpBatchClient = new HttpBatchClient(address, {
-            //     batchSizeLimit: 5,
-            //     dispatchInterval: TIMEOUT
-            // })
-            // const client: any = await Tendermint34Client.create(httpBatchClient)
-            const client = await tendermint_rpc_1.Tendermint34Client.connect(address);
+            const httpBatchClient = new tendermint_rpc_1.HttpBatchClient(address, {
+                batchSizeLimit: 5,
+                dispatchInterval: variables_1.TIMEOUT
+            });
+            const client = await tendermint_rpc_1.Tendermint34Client.create(httpBatchClient);
             const queryClient = stargate_1.QueryClient.withExtensions(client, cosmwasm_stargate_1.setupWasmExtension);
             let rpcConnection = {
                 client,
@@ -193,7 +189,6 @@ const bigIntMe = (theNotBigIntYet) => {
 exports.bigIntMe = bigIntMe;
 // Quite a useful function to send a query message to a contract at a given block height
 const queryContractAtHeight = async (address, args, height) => {
-    console.log('aloha15');
     // Turn JSON object into a string, then into buffer of bytes
     const queryReadableBytes = Buffer.from(JSON.stringify(args));
     const queryBase64 = (0, exports.base64FromBytes)(queryReadableBytes);
@@ -235,7 +230,6 @@ const addRPCs = (rpcs) => {
 };
 exports.addRPCs = addRPCs;
 const getLatestBlockHeight = async () => {
-    console.log('aloha20');
     // This uses the "regular" client, not the QueryClient
     const clientStatuses = variables_1.allRPCConnections.map(conn => conn.client.status());
     const firstBlockHeight = (await Promise.any(clientStatuses)).syncInfo.latestBlockHeight;
@@ -243,26 +237,13 @@ const getLatestBlockHeight = async () => {
 };
 exports.getLatestBlockHeight = getLatestBlockHeight;
 const getBlockInfo = async (height) => {
-    console.log('aloha21a for height', height);
     // This uses the "regular" client, not the QueryClient
-    // const clientBlocks = allRPCConnections.map(conn => conn.client.block(height))
-    let cmon = null;
-    try {
-        cmon = await variables_1.allRPCConnections[0].client.block(height);
-    }
-    catch (e) {
-        console.error('fuck', e);
-    }
-    console.log('aloha21b');
-    return cmon;
-    // const blockDetails = await Promise.any(clientBlocks).catch(e => {
-    //     console.log('wtf', e)
-    // })
-    // return blockDetails
+    const clientBlocks = variables_1.allRPCConnections.map(conn => conn.client.block(height));
+    const blockDetails = await Promise.any(clientBlocks);
+    return blockDetails;
 };
 exports.getBlockInfo = getBlockInfo;
 const getTxInfo = async (hash) => {
-    console.log('aloha22');
     const txHash = Buffer.from((0, encoding_1.fromHex)(hash));
     const clientTxs = variables_1.allRPCConnections.map(conn => conn.client.tx({ hash: txHash }));
     const txDetails = await Promise.any(clientTxs);
@@ -270,14 +251,12 @@ const getTxInfo = async (hash) => {
 };
 exports.getTxInfo = getTxInfo;
 const queryUnverified = async (path, requestObj, height) => {
-    console.log('aloha17');
     const queryClientUnverifieds = variables_1.allRPCConnections.map(conn => conn.queryClient.queryUnverified(path, requestObj, height));
     const queryRespEncoded = await Promise.any(queryClientUnverifieds);
     return queryRespEncoded;
 };
 exports.queryUnverified = queryUnverified;
 const getContractInfo = async (address) => {
-    console.log('aloha16');
     const queryClientContractInfos = variables_1.allRPCConnections.map(conn => conn.queryClient.wasm.getContractInfo(address));
     const queryContractInfo = await Promise.any(queryClientContractInfos);
     return queryContractInfo;
