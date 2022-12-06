@@ -106,7 +106,8 @@ const checkForMissedBlocks = async () => {
     // We use length - 1 since we can't compare past that
     for (let i = 0; i < variables_1.blockHeights.length - 1; i++) {
         // Go until we see the first gap, keep it simple
-        if (variables_1.blockHeights[i] - variables_1.blockHeights[i + 1] !== 1) {
+        // blockHeights[i] can't be less or equal to blockHeights[i + 1]
+        if (variables_1.blockHeights[i] - variables_1.blockHeights[i + 1] > 1) {
             keepGoing = true;
             // Do stuff to add block
             const missingBlockNum = variables_1.blockHeights[i] - 1;
@@ -119,6 +120,7 @@ const checkForMissedBlocks = async () => {
             await (0, checkForLatestBlock_1.handleBlockTxs)(missingBlockNum, blockTxs, isoBlockTime);
         }
     }
+    (0, variables_1.updateBlocksTimerId)(setTimeout(exports.checkForMissedBlocks, variables_1.TIMEOUT));
 };
 exports.checkForMissedBlocks = checkForMissedBlocks;
 // Credit to Fisher-Yates, SO and eventually https://www.webmound.com/shuffle-javascript-array

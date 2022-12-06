@@ -6,7 +6,7 @@ import {
   settings,
   CHAIN_REGISTRY_URLS,
   TIMEOUT,
-  updateStateTimerId, TIMEOUT_CHECK_CHAIN_REGISTRY
+  updateStateTimerId, TIMEOUT_CHECK_CHAIN_REGISTRY, updateBlocksTimerId
 } from "./variables"
 import {addRPCs, checkForMissedBlocks, setRPCClients, shuffleRPCs, skipRPCs} from "./utils"
 import fetch from 'node-fetch'
@@ -47,7 +47,7 @@ const setup = async () => {
   setInterval(() => addTxDetail(), TIMEOUT * 2)
 
   // Check for gaps in blocks
-  setInterval(() => checkForMissedBlocks(), TIMEOUT * 2)
+  updateBlocksTimerId(setTimeout(checkForMissedBlocks, TIMEOUT * 2));
 
   // Check for fk_contract_id in messages
   setInterval(() => addContractId(), TIMEOUT * 2)

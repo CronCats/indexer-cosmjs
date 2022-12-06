@@ -7,7 +7,7 @@ import {
     blockHeights,
     RPC_LIMIT,
     setAllRPCConnections, SKIP_RPC_ADDRESSES, TIMEOUT,
-    updateBlockHeights, VERBOSITY
+    updateBlockHeights, updateBlocksTimerId, VERBOSITY
 } from "./variables";
 import {BlockResponse, HttpBatchClient, Tendermint34Client, TxResponse} from "@cosmjs/tendermint-rpc";
 import {QueryClient} from "@cosmjs/stargate";
@@ -96,7 +96,8 @@ export const checkForMissedBlocks = async () => {
     // We use length - 1 since we can't compare past that
     for (let i = 0; i < blockHeights.length - 1; i++) {
         // Go until we see the first gap, keep it simple
-        if (blockHeights[i] - blockHeights[i + 1] !== 1) {
+        // blockHeights[i] can't be less or equal to blockHeights[i + 1]
+        if (blockHeights[i] - blockHeights[i + 1] > 1) {
             keepGoing = true
             // Do stuff to add block
             const missingBlockNum = blockHeights[i] - 1
@@ -110,6 +111,7 @@ export const checkForMissedBlocks = async () => {
             await handleBlockTxs(missingBlockNum, blockTxs, isoBlockTime)
         }
     }
+    updateBlocksTimerId(setTimeout(checkForMissedBlocks, TIMEOUT));
 }
 
 // Credit to Fisher-Yates, SO and eventually https://www.webmound.com/shuffle-javascript-array

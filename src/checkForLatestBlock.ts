@@ -99,6 +99,7 @@ export const handleBlockTxs = async (height: number, blockTxs, isoBlockTime: str
             wasmExecTxs.push(simpleTx)
         }
     })
+
     if (wasmExecTxs.length !== 0) {
         console.log('Found transaction(s) interacting with our contract(s) on this block…')
         await addSeenHeight(height)

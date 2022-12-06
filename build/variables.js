@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.db = exports.updateStateTimerId = exports.getStateTimerId = exports.updateLastHeight = exports.lastHeight = exports.updateBlockHeights = exports.blockHeights = exports.contractAddresses = exports.settings = exports.ADD_RPC_ADDRESSES_ALWAYS = exports.ADD_RPC_ADDRESSES = exports.SKIP_RPC_ADDRESSES = exports.VERBOSITY = exports.CHAIN_REGISTRY_URLS = exports.CACHE_LIMIT = exports.RPC_LIMIT = exports.TIMEOUT_CHECK_CHAIN_REGISTRY = exports.TIMEOUT = exports.setAllRPCConnections = exports.allRPCConnections = exports.agents = exports.emptyHeights = exports.blockMap = exports.CHAIN_ID_PREFIX = exports.CHAIN_ID = void 0;
+exports.db = exports.updateBlocksTimerId = exports.getBlocksTimerId = exports.updateStateTimerId = exports.getStateTimerId = exports.updateLastHeight = exports.lastHeight = exports.updateBlockHeights = exports.blockHeights = exports.contractAddresses = exports.settings = exports.ADD_RPC_ADDRESSES_ALWAYS = exports.ADD_RPC_ADDRESSES = exports.SKIP_RPC_ADDRESSES = exports.VERBOSITY = exports.CHAIN_REGISTRY_URLS = exports.CACHE_LIMIT = exports.RPC_LIMIT = exports.TIMEOUT_CHECK_CHAIN_REGISTRY = exports.TIMEOUT = exports.setAllRPCConnections = exports.allRPCConnections = exports.agents = exports.emptyHeights = exports.blockMap = exports.CHAIN_ID_PREFIX = exports.CHAIN_ID = void 0;
 // Contracts we'll want to look for being called
 const db_1 = require("./db");
 const dotenv_1 = require("dotenv");
@@ -53,4 +53,8 @@ const updateStateTimerId = (newTimer) => {
     exports.getStateTimerId = newTimer;
 };
 exports.updateStateTimerId = updateStateTimerId;
+const updateBlocksTimerId = (newBlocksTimer) => {
+    exports.getBlocksTimerId = newBlocksTimer;
+};
+exports.updateBlocksTimerId = updateBlocksTimerId;
 exports.db = (0, db_1.getDb)();
