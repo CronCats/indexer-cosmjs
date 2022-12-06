@@ -19,6 +19,7 @@ const checkForLatestBlock = async () => {
     }
     // Logic for new block that came in
     (0, variables_1.updateLastHeight)(currentHeight);
+    console.log('New block height:', currentHeight);
     let block;
     try {
         block = await (0, utils_1.getBlockInfo)(currentHeight);

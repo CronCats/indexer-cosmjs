@@ -116,6 +116,7 @@ const checkForMissedBlocks = async () => {
             const blockTime = block.block.header.time;
             const isoBlockTime = new Date(blockTime.toISOString()).toISOString();
             (0, exports.v)('isoBlockTime', isoBlockTime);
+            console.log('Fixing missed block', missingBlockNum);
             await (0, checkForLatestBlock_1.handleBlockTxs)(missingBlockNum, blockTxs, isoBlockTime);
         }
     }

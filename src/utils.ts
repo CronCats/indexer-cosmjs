@@ -107,6 +107,7 @@ export const checkForMissedBlocks = async () => {
             const isoBlockTime = new Date(blockTime.toISOString()).toISOString()
             v('isoBlockTime', isoBlockTime)
 
+            console.log('Fixing missed block', missingBlockNum)
             await handleBlockTxs(missingBlockNum, blockTxs, isoBlockTime)
         }
     }

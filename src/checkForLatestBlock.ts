@@ -37,6 +37,7 @@ export const checkForLatestBlock = async () => {
     }
     // Logic for new block that came in
     updateLastHeight(currentHeight)
+    console.log('New block height:', currentHeight)
     let block: BlockResponse
     try {
         block = await getBlockInfo(currentHeight)
