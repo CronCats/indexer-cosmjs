@@ -25,7 +25,7 @@ export const getDb = () => {
             ssl: enableSSL
         },
         pool: {
-            max: 5,
+            max: 19,
             min: 5,
             acquireTimeoutMillis: 60000,
             createTimeoutMillis: 30000,
