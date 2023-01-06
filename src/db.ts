@@ -23,14 +23,6 @@ export const getDb = () => {
             host: DB_HOSTIP,
             port: DB_HOSTPORT,
             ssl: enableSSL
-        },
-        pool: {
-            max: 19,
-            min: 5,
-            acquireTimeoutMillis: 60000,
-            createTimeoutMillis: 30000,
-            idleTimeoutMillis: 600000,
-            createRetryIntervalMillis: 200,
         }
     });
 }
