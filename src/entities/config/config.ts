@@ -30,7 +30,7 @@ export const saveConfigDetails = async (managerAddress: string) => {
 
 const saveConfig = async (contractAddress, getConfigMsg, blockHeight, contractBlockIdFk) => {
     const config = await queryContractAtHeight(contractAddress, getConfigMsg, blockHeight)
-    v('config', config)
+    console.log('config', config)
     // Insert row into config
     const configFkId = await db('js_config').insert({
         fk_cb_id: contractBlockIdFk,
@@ -45,6 +45,7 @@ const saveConfig = async (contractAddress, getConfigMsg, blockHeight, contractBl
         proxy_callback_gas: config.proxy_callback_gas,
         native_denom: config.native_denom
     }, 'id')
+    console.log('configFkId', configFkId);
 
     await saveConfigBalances(configFkId[0].id, config)
 }
