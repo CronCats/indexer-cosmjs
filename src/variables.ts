@@ -2,8 +2,10 @@
 import {getDb} from "./db"
 import {config} from "dotenv"
 import {RpcConnection} from "./interfaces"
+const util = require('util');
 // Set up dotenv for environment variables
 config({ path: '.env' })
+
 // Use chain registry to get details about this chain, according to what's in .env file
 export const CHAIN_ID = process.env.CHAIN_ID
 export const CHAIN_ID_PREFIX = process.env.CHAIN_ID_PREFIX
@@ -28,8 +30,20 @@ export const SKIP_RPC_ADDRESSES = JSON.parse(process.env.SKIP_RPC_ADDRESSES)
 export const ADD_RPC_ADDRESSES = JSON.parse(process.env.ADD_RPC_ADDRESSES)
 export const ADD_RPC_ADDRESSES_ALWAYS = JSON.parse(process.env.ADD_RPC_ADDRESSES_ALWAYS)
 
+// From the setting's factory details, get the other contract addresses
+// const getSettings = () => {
+//     let promises = []
+//     let settings = JSON.parse(process.env.SETTINGS)
+//     promises.push()
+// }
+// export let settings = getSettings()
 export let settings = JSON.parse(process.env.SETTINGS)
-console.log('settings', settings)
+export const updateSettings = (newValues) => {
+    settings = newValues
+}
+// console.log('settings', settings)
+console.log('blockInfo', util.inspect(settings, false, null, true))
+
 export const contractAddresses: Set<string> = new Set()
 const contractCategories = Object.keys(settings.contracts)
 for (const category of contractCategories) {
@@ -57,3 +71,33 @@ export const updateStateTimerId = (newTimer) => {
 }
 
 export const db = getDb()
+
+const hi = {
+    "create_task": {
+        "task": {
+            "interval": "Once",
+            "boundary": null,
+            "cw20": null,
+            "queries": null,
+            "transforms": null,
+            "stop_on_fail": false,
+            "actions": [
+                {
+                    "msg": {
+                        "bank": {
+                            "send": {
+                                "amount": [
+                                    {
+                                        "amount": "6",
+                                        "denom": "ujunox"
+                                    }
+                                ],
+                                "to_address": "juno1hntaw5cgvxz0gftpd9gec876n0l6az20clrred"
+                            }
+                        }
+                    }
+                }
+            ],
+        }
+    }
+}

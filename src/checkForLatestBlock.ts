@@ -28,8 +28,6 @@ import {QueryContractInfoResponse} from "cosmjs-types/cosmwasm/wasm/v1/query";
 import {BlockResponse} from "@cosmjs/tendermint-rpc";
 
 export const checkForLatestBlock = async () => {
-    // TODO use Promise.any probably since it's not mission-critical that we the latest height
-    // See: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/race#comparison_with_promise.any
     const currentHeight = await getLatestBlockHeight()
     if (currentHeight === lastHeight) {
         // Nothing to see, move along, solider

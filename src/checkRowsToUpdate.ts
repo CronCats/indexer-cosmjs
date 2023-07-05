@@ -9,16 +9,19 @@ export const checkRowsToUpdate = async () => {
     // And run these functions on all of them to gather details about contract state, and some protocol balances
 
     let promises = []
-    for (const { address } of settings.contracts['managers']) {
-        promises.push(saveAgentDetails(address))
-        promises.push(saveTaskDetails(address))
-        promises.push(saveConfigDetails(address))
-    }
-    // Try running them all
-    try {
-        await Promise.all(promises)
-    } catch (e) {
-        console.error('Failed to save entities for managers category', e)
+
+    if (settings.contracts.hasOwnProperty('managers')) {
+        for (const { address } of settings.contracts['managers']) {
+            promises.push(saveAgentDetails(address))
+            promises.push(saveTaskDetails(address))
+            promises.push(saveConfigDetails(address))
+        }
+        // Try running them all
+        try {
+            await Promise.all(promises)
+        } catch (e) {
+            console.error('Failed to save entities for managers category', e)
+        }
     }
     // Reset it so other contract "categories" (like "managers" from SETTINGS) can be added smoothly
     promises = []

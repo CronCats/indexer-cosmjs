@@ -4,15 +4,17 @@ import {addTxDetail} from "./addTxDetail"
 import {
   allRPCConnections, CHAIN_ID,
   settings,
+  updateSettings,
   CHAIN_REGISTRY_URLS,
   TIMEOUT,
   updateStateTimerId, TIMEOUT_CHECK_CHAIN_REGISTRY
 } from "./variables"
-import {addRPCs, checkForMissedBlocks, setRPCClients, shuffleRPCs, skipRPCs} from "./utils"
+import {addRPCs, checkForMissedBlocks, factoryContracts, setRPCClients, shuffleRPCs, skipRPCs} from "./utils"
 import fetch from 'node-fetch'
 import {Chain} from "./interfaces"
 import { addContractId } from "./addContractId"
 import { checkSynced } from "./checkSynced"
+import util from "util";
 
 // This downloads the latest version from chain-registry 😐
 const getCurrentRPCs = async () => {
@@ -33,6 +35,9 @@ const getCurrentRPCs = async () => {
 
 // Main entry point
 const setup = async () => {
+  // Ensure that any extra processing/requests modifying settings are able to update
+  await updates()
+
   // Poll to get the latest block (with basic transaction info but not full details)
   setInterval(() => {
     checkForLatestBlock()
@@ -58,6 +63,31 @@ const setup = async () => {
   // This setTimeout schedules the next call at the end of the current one.
   // "Call checkRowsToUpdate, let it finish, then wait the timeout amount before calling it again."
   updateStateTimerId(setTimeout(checkRowsToUpdate, TIMEOUT * 2));
+}
+
+// This could go in a folder for CronCat-specific stuff to generalize the indexer
+const updates = async () => {
+  // We provide the CronCat Factory contract address
+  // Let's populate the settings variable by discovering the addresses to the other contracts
+  const factoryAddress = settings['contracts']['factory'][0].address
+  console.log('aloha factoryAddress', factoryAddress)
+  const contractsRes = await factoryContracts(factoryAddress)
+  console.log('aloha contractsRes', contractsRes)
+  for (const contract of contractsRes) {
+    settings['contracts'][contract.contract_name] = [{ address: contract.metadata.contract_addr }]
+    // console.log('aloha contract', contract)
+  }
+  // const contractsArr = contractsRes.map(c => {
+  //   let o = {}
+  //   o[c.contract_name] = {
+  //     address: c.metadata.contract_addr
+  //   }
+  //   return o
+  // })
+  // console.log('aloha contractsArr', contractsArr)
+  // console.log('aloha settingszzz', settings)
+  console.log('settingszzz', util.inspect(settings, false, null, true))
+
 }
 
 if (settings) {

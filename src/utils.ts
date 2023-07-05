@@ -220,6 +220,14 @@ export const addRPCs = (rpcs: Chain[]): Chain[] => {
     return res
 }
 
+export const factoryContracts = async (factoryAddress: string): Promise<any> => {
+    const getContracts = allRPCConnections.map(conn => conn.queryClient.wasm.queryContractSmart(factoryAddress, {
+        "latest_contracts": {}
+    }))
+    const contracts = await Promise.any(getContracts)
+    return contracts
+}
+
 export const getLatestBlockHeight = async (): Promise<number> => {
     // This uses the "regular" client, not the QueryClient
     const clientStatuses = allRPCConnections.map(conn => conn.client.status())
